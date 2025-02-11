@@ -144,7 +144,7 @@ def trading_loop():
 
 # 🔹 Start Trading Bot
 if __name__ == "__main__":
-    print("🚀 Starting Binance Trading Bot for BTC, XRP, and WLD...")
+    print("🚀 Starting Binance Trading Bot for %s..." % symbols)
 
     # Run WebSocket in a separate thread
     ws_thread = threading.Thread(target=start_websocket)
