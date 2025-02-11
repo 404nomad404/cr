@@ -27,11 +27,12 @@ Whenever you add more cryptocurrencies to the symbols list (e.g., ETH/USDT, SOL/
 	
 	>•	Price < EMA 50, 100, 200 → Long-term downtrend → BE CAUTIOUS
 
+-   Sends alerts to Telegram
+      >Uses Markdown in Telegram for better readability
+
       Telegram message examples:
       ><a href="https://ibb.co/5X4VvdfV"><img src="https://i.ibb.co/LDRf6M2f/SCR-20250211-tovs.png" alt="SCR-20250211-tovs" border="0"></a>
       ><a href="https://ibb.co/7NJKVB4s"><img src="https://i.ibb.co/WpWfF7tm/SCR-20250211-ufhy.png" alt="SCR-20250211-ufhy" border="0"></a>
--   Sends alerts to Telegram
-      >Uses Markdown in Telegram for better readability
 -   Uses Binance WebSockets for real-time updates. Its public API allows users to access market data, such as price and trading volume, WITHOUT any cost
 -   Runs continuously, checking the market every 5 minutes (15 minutes for V2)
 
