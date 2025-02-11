@@ -80,12 +80,22 @@ def check_signals(df, symbol, timeframe):
     return signal_message
 
 # 🔹 Real-time WebSocket Updates
+# bot will only process real-time trade messages and ignore non-trade messages without errors
 def on_message(ws, message):
-    data = json.loads(message)
-    symbol = data['s']
-    price = float(data['p'])  # Latest price
-    print(f"📊 Real-time {symbol} Price: {price}")
+    try:
+        data = json.loads(message)
 
+        # ✅ Check if the message contains 's' (symbol) and 'p' (price)
+        if 's' in data and 'p' in data:
+            symbol = data['s']
+            price = float(data['p'])  # Latest price
+            print(f"📊 Real-time {symbol} Price: {price}")
+        else:
+            print("⚠️ Received non-trade message from Binance WebSocket:", data)
+
+    except Exception as e:
+        print(f"⚠️ WebSocket Message Error: {e}")
+        
 def on_open(ws):
     print("✅ WebSocket connection established.")
     ws.send(json.dumps({
