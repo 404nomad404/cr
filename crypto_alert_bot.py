@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Ishafizan'
-__date__ = "11 Feb 2025"
+__date__ = "11 Feb 2025"  # Selamat Menyambut Thaipusam
 
 import ccxt
 import pandas as pd
