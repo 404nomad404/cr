@@ -28,9 +28,7 @@ Whenever you add more cryptocurrencies to the symbols list (e.g., ETH/USDT, SOL/
 	>•	Price < EMA 50, 100, 200 → Long-term downtrend → BE CAUTIOUS
 
       Examples:
-      >✅ “*STRONG BULLISH SIGNAL!* 🚀 {symbol} *Price broke above EMA 200!* Long-term uptrend confirmed!”
-      >
-      
+      ><a href="https://ibb.co/5X4VvdfV"><img src="https://i.ibb.co/LDRf6M2f/SCR-20250211-tovs.png" alt="SCR-20250211-tovs" border="0"></a>
 -   Sends alerts to Telegram
       >Uses Markdown in Telegram for better readability
 -   Uses Binance WebSockets for real-time updates. Its public API allows users to access market data, such as price and trading volume, WITHOUT any cost
@@ -94,7 +92,8 @@ That's it!
   >-If RSI is above 50, it suggests bullish momentum—strengthening buy signals.
   >
   >-if RSI is below 50, it suggests bearish momentum—validating sell signals.
-<a href="https://ibb.co/5X4VvdfV"><img src="https://i.ibb.co/LDRf6M2f/SCR-20250211-tovs.png" alt="SCR-20250211-tovs" border="0"></a>
+  ><a href="https://ibb.co/kgJQzB1T"><img src="https://i.ibb.co/nsBz4mCy/SCR-20250211-trdm.png" alt="SCR-20250211-trdm" border="0"></a>
+
 - Study RSI, MACD, or volume to reduce fake signals.
 - Add backtesting feature:
 > 1.	Fetch historical price data (OHLCV - Open, High, Low, Close, Volume).
