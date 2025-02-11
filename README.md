@@ -53,10 +53,11 @@ Whenever you add more cryptocurrencies to the symbols list (e.g., ETH/USDT, SOL/
 4. Install the required Python libraries:
 ```
 pip install ccxt requests websocket-client pandas numpy python-telegram-bot
+pip install python-binance ta-lib
 ```
 
 
-## 📌 How to Run the Bot
+## 📌 How to Run the Bots
 
 ##### 1. Replace API Keys:
 
@@ -65,7 +66,13 @@ pip install ccxt requests websocket-client pandas numpy python-telegram-bot
 
 ##### 2. Run the Script:
 ```
+# Basic EMA crossovers
 python crypto_alert_bot.py
+# EMA crossovers, RSI insights, and support/resistance levels
+python crypto_alert_bot_with_SR_RSI.py
+# EMA crossovers, RSI insights, and support/resistance levels. BUT silent :)
+python crypto_alert_bot_with_SR_RSI_V2.py
+
 ```
 
 That's it!
@@ -93,10 +100,3 @@ That's it!
   >
   >-if RSI is below 50, it suggests bearish momentum—validating sell signals.
   ><a href="https://ibb.co/kgJQzB1T"><img src="https://i.ibb.co/nsBz4mCy/SCR-20250211-trdm.png" alt="SCR-20250211-trdm" border="0"></a>
-
-- Study RSI, MACD, or volume to reduce fake signals.
-- Add backtesting feature:
-> 1.	Fetch historical price data (OHLCV - Open, High, Low, Close, Volume).
-> 2.	Apply the strategy (e.g., EMA crossovers + RSI confirmation).
-> 3.	Simulate trade execution (Buy when criteria are met, sell when exit conditions occur).
-> 4.	Calculate performance metrics (profit/loss %, max drawdown, win rate).
