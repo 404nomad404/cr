@@ -58,7 +58,7 @@ pip install ccxt requests websocket-client pandas numpy python-telegram-bot
 ```
 
 
-## 📌 How to Run the crypto_alert_bot.py
+## 📌 How to Run the Bot
 
 ##### 1. Replace API Keys:
 
