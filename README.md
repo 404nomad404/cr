@@ -13,10 +13,11 @@ symbols = ['BTC/USDT', 'XRP/USDT', 'WLD/USDT']  # Multi-Crypto Support
       >📉 SELL when EMA 7 crosses below EMA 21
       >
       >⚠️ Alerts when price crosses EMA 50, 100, or 200
+
+      Examples:
+      >✅ “Strong Bullish Signal! 🚀 {symbol} broken above EMA 200 on the 1D chart!”
       >
-      >✅ “Strong Bullish Signal! 🚀 BTC has broken above EMA 200 on the 1D chart!”
-      >
-      >“Warning! BTC has dropped below EMA 100 on the 8H chart! Possible downtrend!”
+      >“Warning! {symbol} has dropped below EMA 100 on the 8H chart! Possible downtrend!”
 -   Sends alerts to Telegram
       >Uses Markdown in Telegram for better readability
 -   Uses Binance WebSockets for real-time updates. Its public API allows users to access market data, such as price and trading volume, without any cost
