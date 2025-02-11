@@ -39,7 +39,7 @@ pip install ccxt requests websocket-client pandas numpy python-telegram-bot
 ```
 ##### 3. Run the Script:
 ```
-python trading_bot.py
+python crypto_alert_bot.py
 ```
 
 ## 📌 What I DID NOT DO
