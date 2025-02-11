@@ -53,6 +53,7 @@ def get_data(symbol, timeframe):
     return df
 
 
+# THE recipe
 def check_signals(df, symbol, timeframe):
     signal_message = None
     last_close = df['close'].iloc[-1]
