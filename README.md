@@ -44,5 +44,5 @@ python crypto_alert_bot.py
 
 ## 📌 What I DID NOT DO
 - Add automatic order execution to buy/sell directly on Binance. 
-- Haha can do if there's a safe sandbox i can play around.
+- Haha can do if there's a safe sandbox i can play around. Do it manually-lah, jgn malas 😂
  
