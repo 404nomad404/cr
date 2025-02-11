@@ -25,8 +25,29 @@ symbols = ['BTC/USDT', 'XRP/USDT', 'WLD/USDT']  # Multi-Crypto Support
 ```
 symbols = ['BTC/USDT', 'XRP/USDT', 'WLD/USDT']  # Multi-Crypto Support
 ```
+## 📌 Requirements
 
-## 📌 How to Run the Bot
+1.	Create a Binance API Key (Go to Binance → API Management).
+2.  To create a bot token 
+    - Open the Telegram app
+    - Search for "@BotFather"
+    - Start a chat with BotFather
+    - Type /newbot
+    - Follow the instructions to name and username your bot
+    - BotFather will send you a unique API token
+3. To create a chat ID 
+    - Create a new chat group
+    - Add your bot to the group
+    - Go to Telegram Web and log in to your account
+    - Select the group chat
+    - The chat ID (numbers/digits) is in the URL in the address bar
+4. Install the required Python libraries:
+```
+pip install ccxt requests websocket-client pandas numpy python-telegram-bot
+```
+
+
+## 📌 How to Run the crypto_alert_bot.py
 
 ##### 1. Replace API Keys:
 
