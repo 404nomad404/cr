@@ -108,3 +108,11 @@ That's it!
   >
   >-if RSI is below 50, it suggests bearish momentum—validating sell signals.
   ><a href="https://ibb.co/kgJQzB1T"><img src="https://i.ibb.co/nsBz4mCy/SCR-20250211-trdm.png" alt="SCR-20250211-trdm" border="0"></a>
+- backtest 
+  >Loads historical Binance data
+  >Applies EMA crossovers, Support/Resistance, RSI rules
+  >Simulate buy/sell trades as per recipe in bot
+  >Calculates balance, total profit/loss, win rate, and performance metrics
+  >Trade Log (timestamps & prices)
+  >Graph with buy/sell signals (matplotlib)
+  >tune recipe with chatgpt
