@@ -6,26 +6,30 @@
 ```
 symbols = ['BTC/USDT', 'XRP/USDT', 'WLD/USDT']  # Multi-Crypto Support
 ```
+Whenever you add more cryptocurrencies to the symbols list (e.g., ETH/USDT, SOL/USDT), the WebSocket will auto-subscribe without manual modifications.
+
 - 	Calculates EMA 7, EMA 21, EMA 50, EMA 100, and EMA 200
 - 	Detects crossover events for buy/sell signals
       >📈 BUY when EMA 7 crosses above EMA 21
       >
       >📉 SELL when EMA 7 crosses below EMA 21
       >
+      >📈 BUY when EMA 21 crosses above EMA 50
+      >
+      >📉 SELL when EMA 21 crosses below EMA 50
+      >
       >⚠️ Alerts when price crosses EMA 50, 100, or 200
+      > ... and more.
 
       Examples:
-      >✅ “Strong Bullish Signal! 🚀 {symbol} broken above EMA 200 on the 1D chart!”
+      >✅ “*STRONG BULLISH SIGNAL!* 🚀 {symbol} *Price broke above EMA 200!* Long-term uptrend confirmed!”
       >
-      >“Warning! {symbol} has dropped below EMA 100 on the 8H chart! Possible downtrend!”
+      
 -   Sends alerts to Telegram
       >Uses Markdown in Telegram for better readability
 -   Uses Binance WebSockets for real-time updates. Its public API allows users to access market data, such as price and trading volume, WITHOUT any cost
 -   Runs continuously, checking the market every 5 minutes
 
-```
-symbols = ['BTC/USDT', 'XRP/USDT', 'WLD/USDT']  # Multi-Crypto Support
-```
 ## 📌 Requirements
 
 1.	Create a Binance API Key https://www.binance.com/en/my/settings/api-management
