@@ -27,7 +27,7 @@ symbols = ['BTC/USDT', 'XRP/USDT', 'WLD/USDT']  # Multi-Crypto Support
 ```
 ## 📌 Requirements
 
-1.	Create a Binance API Key (Go to Binance → API Management).
+1.	Create a Binance API Key https://www.binance.com/en/my/settings/api-management
 2.  To create a bot token 
     - Open the Telegram app
     - Search for "@BotFather"
