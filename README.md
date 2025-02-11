@@ -102,7 +102,7 @@ That's it!
 
 <a href="https://ibb.co/Xf2GggtK"><img src="https://i.ibb.co/dsWHqqDV/SCR-20250211-rfkg.png" alt="SCR-20250211-rfkg" border="0"></a>
 
-- RSI for Overbought/Oversold Conditions (DONE-crypto_alert_bot_with_EMA_SR_RSI.py, crypto_alert_bot_with_EMA_SR_RSI_V2.py)
+- RSI for Overbought/Oversold Conditions (DONE: crypto_alert_bot_with_EMA_SR_RSI.py, crypto_alert_bot_with_EMA_SR_RSI_V2.py)
   >-If RSI is above 50, it suggests bullish momentum—strengthening buy signals.
   >
   >-if RSI is below 50, it suggests bearish momentum—validating sell signals.
