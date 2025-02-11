@@ -78,5 +78,17 @@ That's it!
  
 ## 📌 R&D
 - Support/Resistance Levels
+    >Support and resistance (S/R) levels help confirm buy/sell signals by identifying key price areas where the market has historically reversed or consolidated. Adding them to EMA-based strategy can:
+
+    >✅ Increase Trade Accuracy – Prevent false breakouts
+    
+    >✅ Confirm Buy/Sell Signals – Only trade when price respects key levels
+    
+    >✅ Identify Strong Entry & Exit Points – Buy near support, sell near resistance
+    
+    >✅ Detect Trend Reversals – When price breaks through strong S/R levels
+    >
+<a href="https://ibb.co/Xf2GggtK"><img src="https://i.ibb.co/dsWHqqDV/SCR-20250211-rfkg.png" alt="SCR-20250211-rfkg" border="0"></a>
+
 - RSI for Overbought/Oversold Conditions
 - Study RSI, MACD, or volume to reduce fake signals.
