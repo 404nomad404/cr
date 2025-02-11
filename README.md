@@ -77,7 +77,7 @@ That's it!
 - Can do if there's a safe sandbox i can play around. Do it manually-lah for now, jgn malas 😂
  
 ## 📌 R&D
-- Support/Resistance Levels
+- Support/Resistance Levels (DONE)
     >Support and resistance (S/R) levels help confirm buy/sell signals by identifying key price areas where the market has historically reversed or consolidated. Adding them to EMA-based strategy can:
 
     >✅ Increase Trade Accuracy – Prevent false breakouts
