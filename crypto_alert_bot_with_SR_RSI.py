@@ -5,6 +5,12 @@ __date__ = "11 Feb 2025"  # Selamat Menyambut Thaipusam
 ✅ Changes & Improvements:
 The script now also includes support and resistance level detection along with RSI insights
 in the Telegram alerts
+- Confirm Buy/Sell Signals – Only trigger trades at key levels
+- Prevent False Breakouts – Ignore weak EMA crossovers
+- Identify Stronger Trends – Catch real breakouts & reversals
+- Support & Resistance Levels added (20-period rolling high & low)
+- EMA 21 & EMA 50 Crossover Alerts improved for better buy/sell confirmation
+- Prevents False Breakouts by requiring confirmation near key levels
 """
 import ccxt
 import pandas as pd
