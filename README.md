@@ -66,15 +66,20 @@ pip install python-binance ta-lib  # need this to run V2
 - 	Add your Telegram Bot Token and Chat ID
 
 ##### 2. Run the Script:
+- Basic EMA crossovers
 ```
-# Basic EMA crossovers
 python crypto_alert_bot.py
-# EMA crossovers, RSI insights, and support/resistance levels
-python crypto_alert_bot_with_SR_RSI.py
-# EMA crossovers, RSI insights, and support/resistance levels. BUT silent :)
-python crypto_alert_bot_with_SR_RSI_V2.py
-
 ```
+- EMA crossovers, RSI insights, and support/resistance levels
+```
+python crypto_alert_bot_with_SR_RSI.py
+```
+- EMA crossovers, RSI insights, and support/resistance levels. BUT silent :)
+```
+python crypto_alert_bot_with_SR_RSI_V2.py
+```
+
+
 
 That's it!
 
@@ -93,10 +98,11 @@ That's it!
     >✅ Identify Strong Entry & Exit Points – Buy near support, sell near resistance
     
     >✅ Detect Trend Reversals – When price breaks through strong S/R levels
-    >
+    
+
 <a href="https://ibb.co/Xf2GggtK"><img src="https://i.ibb.co/dsWHqqDV/SCR-20250211-rfkg.png" alt="SCR-20250211-rfkg" border="0"></a>
 
-- RSI for Overbought/Oversold Conditions (DONE-crypto_alert_bot_with_SR_RSI.py, crypto_alert_bot_with_SR_RSI_V2.py)
+- RSI for Overbought/Oversold Conditions (DONE-crypto_alert_bot_with_EMA_SR_RSI.py, crypto_alert_bot_with_EMA_SR_RSI_V2.py)
   >-If RSI is above 50, it suggests bullish momentum—strengthening buy signals.
   >
   >-if RSI is below 50, it suggests bearish momentum—validating sell signals.
