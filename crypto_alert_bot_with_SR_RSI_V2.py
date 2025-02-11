@@ -69,6 +69,7 @@ def calculate_indicators(df):
     return df
 
 
+# The recipes
 def detect_signals(df, symbol):
     """Identify buy/sell signals based on EMA crossovers and RSI"""
     last_row = df.iloc[-1]
