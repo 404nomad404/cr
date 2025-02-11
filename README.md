@@ -123,5 +123,4 @@ That's it!
   >
   >tune recipe with chatgpt
   
-  <a href="https://ibb.co/CF01604"><img src="https://i.ibb.co/rJy73yq/Figure-1.png" alt="Figure-1" border="0"></a><br /><a target='_blank' href='https://imgbb.com/'>picture upload site</a><br />
-  not bad! 
+
