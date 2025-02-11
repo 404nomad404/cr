@@ -9,17 +9,23 @@ symbols = ['BTC/USDT', 'XRP/USDT', 'WLD/USDT']  # Multi-Crypto Support
 Whenever you add more cryptocurrencies to the symbols list (e.g., ETH/USDT, SOL/USDT), the WebSocket will auto-subscribe without manual modifications.
 
 - 	Calculates EMA 7, EMA 21, EMA 50, EMA 100, and EMA 200
-- 	Detects crossover events for buy/sell signals
-      >📈 BUY when EMA 7 crosses above EMA 21
-      >
-      >📉 SELL when EMA 7 crosses below EMA 21
-      >
-      >📈 BUY when EMA 21 crosses above EMA 50
-      >
-      >📉 SELL when EMA 21 crosses below EMA 50
-      >
-      >⚠️ Alerts when price crosses EMA 50, 100, or 200
-      > ... and more.
+- 	Detects crossover events for buy/sell signals. The recipe:
+      
+    >1️⃣ BUY Signal 🚀
+    
+	>•	EMA 7 > EMA 21 → Short-term uptrend → BUY (BUY when EMA 7 crosses above EMA 21)
+    
+	>•	EMA 21 > EMA 50 → Mid-term breakout → BUY
+    
+	>•	Price > EMA 50, 100, 200 → Long-term uptrend → BUY
+
+    >2️⃣ SELL Signal 🔻
+    
+	>•	EMA 7 < EMA 21 → Short-term weakening → SELL (SELL when EMA 7 crosses below EMA 21)
+	
+	>•	EMA 21 < EMA 50 → Mid-term breakdown → SELL
+	
+	>•	Price < EMA 50, 100, 200 → Long-term downtrend → BE CAUTIOUS
 
       Examples:
       >✅ “*STRONG BULLISH SIGNAL!* 🚀 {symbol} *Price broke above EMA 200!* Long-term uptrend confirmed!”
@@ -70,3 +76,7 @@ That's it!
 - Add automatic order execution to buy/sell directly on Binance. 
 - Can do if there's a safe sandbox i can play around. Do it manually-lah for now, jgn malas 😂
  
+## 📌 R&D
+- Support/Resistance Levels
+- RSI for Overbought/Oversold Conditions
+- Study RSI, MACD, or volume to reduce fake signals.
