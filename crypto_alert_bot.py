@@ -109,7 +109,9 @@ def start_websocket():
         on_error=on_error,
         on_close=on_close
     )
-    ws.run_forever()
+    # ws.run_forever()
+    ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})  # bypass SSL verification
+
 
 # 🔹 Main Trading Loop (Runs Every 5 Minutes)
 def trading_loop():
