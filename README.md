@@ -20,7 +20,7 @@ symbols = ['BTC/USDT', 'XRP/USDT', 'WLD/USDT']  # Multi-Crypto Support
       >“Warning! {symbol} has dropped below EMA 100 on the 8H chart! Possible downtrend!”
 -   Sends alerts to Telegram
       >Uses Markdown in Telegram for better readability
--   Uses Binance WebSockets for real-time updates. Its public API allows users to access market data, such as price and trading volume, without any cost
+-   Uses Binance WebSockets for real-time updates. Its public API allows users to access market data, such as price and trading volume, WITHOUT any cost
 -   Runs continuously, checking the market every 5 minutes
 
 ```
