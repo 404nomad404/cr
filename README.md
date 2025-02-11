@@ -90,10 +90,11 @@ That's it!
     >
 <a href="https://ibb.co/Xf2GggtK"><img src="https://i.ibb.co/dsWHqqDV/SCR-20250211-rfkg.png" alt="SCR-20250211-rfkg" border="0"></a>
 
-- RSI for Overbought/Oversold Conditions (DONE)
+- RSI for Overbought/Oversold Conditions (DONE-crypto_alert_bot_with_SR_RSI.py)
   >-If RSI is above 50, it suggests bullish momentum—strengthening buy signals.
   >
   >-if RSI is below 50, it suggests bearish momentum—validating sell signals.
+<a href="https://ibb.co/5X4VvdfV"><img src="https://i.ibb.co/LDRf6M2f/SCR-20250211-tovs.png" alt="SCR-20250211-tovs" border="0"></a>
 - Study RSI, MACD, or volume to reduce fake signals.
 - Add backtesting feature:
 > 1.	Fetch historical price data (OHLCV - Open, High, Low, Close, Volume).
