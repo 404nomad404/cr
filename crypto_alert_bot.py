@@ -53,38 +53,39 @@ def get_data(symbol, timeframe):
     return df
 
 
-# 🔹 Check Buy/Sell Conditions Using EMAs
 def check_signals(df, symbol, timeframe):
     signal_message = None
     last_close = df['close'].iloc[-1]
 
-    # 📈 EMA 7 & EMA 21 Crossover (Short-term signals)
+    # 📈 EMA 7 & EMA 21 Crossover (Short-term trend signals)
     if df['ema_7'].iloc[-2] < df['ema_21'].iloc[-2] and df['ema_7'].iloc[-1] > df['ema_21'].iloc[-1]:
-        signal_message = f"📈 *BUY SIGNAL!* {symbol} (Timeframe: {timeframe})\n🔹 Short-term uptrend detected! (EMA 7 crossed above EMA 21)"
+        signal_message = f"✅ *BUY SIGNAL!* {symbol} ({timeframe})\n📊 *Short-term bullish trend detected!*\n🔹 EMA 7 crossed above EMA 21 – Momentum is shifting upwards!"
+
     elif df['ema_7'].iloc[-2] > df['ema_21'].iloc[-2] and df['ema_7'].iloc[-1] < df['ema_21'].iloc[-1]:
-        signal_message = f"📉 *SELL SIGNAL!* {symbol} (Timeframe: {timeframe})\n🔹 Short-term downtrend detected! (EMA 7 crossed below EMA 21)"
+        signal_message = f"⚠️ *SELL SIGNAL!* {symbol} ({timeframe})\n📊 *Short-term bearish trend detected!*\n🔻 EMA 7 crossed below EMA 21 – Momentum is weakening."
 
-    # 📈 EMA 21 & EMA 50 Crossover (Medium-term signals)
-    elif df['ema_21'].iloc[-2] < df['ema_50'].iloc[-2] and df['ema_21'].iloc[-1] > df['ema_50'].iloc[-1]:
-        signal_message = f"🚀 *Bullish Breakout!* {symbol} (Timeframe: {timeframe})\n🔹 EMA 21 crossed above EMA 50 – Mid-term bullish trend!"
+    # 🚀 EMA 21 & EMA 50 Crossover (Mid-term trend signals)
+    if df['ema_21'].iloc[-2] < df['ema_50'].iloc[-2] and df['ema_21'].iloc[-1] > df['ema_50'].iloc[-1]:
+        signal_message = f"✅ *BUY SIGNAL!* {symbol} ({timeframe})\n🚀 *Mid-term bullish breakout!*\n🔹 EMA 21 crossed above EMA 50 – Stronger bullish momentum building!"
+
     elif df['ema_21'].iloc[-2] > df['ema_50'].iloc[-2] and df['ema_21'].iloc[-1] < df['ema_50'].iloc[-1]:
-        signal_message = f"⚠️ *Bearish Caution!* {symbol} (Timeframe: {timeframe})\n🔹 EMA 21 crossed below EMA 50 – Potential trend weakening!"
+        signal_message = f"⚠️ *SELL SIGNAL!* {symbol} ({timeframe})\n📉 *Mid-term bearish reversal detected!*\n🔻 EMA 21 crossed below EMA 50 – Market could be turning bearish."
 
-    # ⚠️ EMA 50, 100, and 200 Crossovers (Stronger Signals)
+    # 🔥 EMA 50, 100, and 200 Crossovers (Long-term trend confirmations)
     if last_close > df['ema_50'].iloc[-1] and last_close < df['ema_50'].iloc[-2]:
-        signal_message = f"⚠️ *WARNING!* {symbol} (Timeframe: {timeframe})\n📉 Price has *dropped below EMA 50* – potential short-term bearish trend."
+        signal_message = f"⚠️ *Warning!* {symbol} ({timeframe})\n📉 *Price just dropped below EMA 50!* Possible short-term downtrend ahead."
     elif last_close < df['ema_50'].iloc[-1] and last_close > df['ema_50'].iloc[-2]:
-        signal_message = f"✅ *Bullish Signal!* {symbol} (Timeframe: {timeframe})\n📈 Price has *broken above EMA 50* – possible uptrend!"
+        signal_message = f"✅ *Bullish Signal!* {symbol} ({timeframe})\n📈 *Price broke above EMA 50!* Buyers are gaining control."
 
     if last_close > df['ema_100'].iloc[-1] and last_close < df['ema_100'].iloc[-2]:
-        signal_message = f"⚠️ *Caution!* {symbol} (Timeframe: {timeframe})\n📉 Price has *dropped below EMA 100* – medium-term bearish pressure increasing!"
+        signal_message = f"⚠️ *Caution!* {symbol} ({timeframe})\n📉 *Price dropped below EMA 100!* Medium-term bearish pressure increasing."
     elif last_close < df['ema_100'].iloc[-1] and last_close > df['ema_100'].iloc[-2]:
-        signal_message = f"🔥 *Momentum Gaining!* {symbol} (Timeframe: {timeframe})\n📈 Price has *broken above EMA 100* – strong bullish sentiment!"
+        signal_message = f"🔥 *Momentum Gaining!* {symbol} ({timeframe})\n📈 *Price broke above EMA 100!* Strong bullish sentiment."
 
     if last_close > df['ema_200'].iloc[-1] and last_close < df['ema_200'].iloc[-2]:
-        signal_message = f"🚨 *Major Warning!* {symbol} (Timeframe: {timeframe})\n⚠️ Price has *dropped below EMA 200* – long-term bearish signal! Downtrend risk ahead!"
+        signal_message = f"🚨 *Major Warning!* {symbol} ({timeframe})\n⚠️ *Price dropped below EMA 200!* Long-term bearish trend confirmed!"
     elif last_close < df['ema_200'].iloc[-1] and last_close > df['ema_200'].iloc[-2]:
-        signal_message = f"🚀 *STRONG BULLISH SIGNAL!* {symbol} (Timeframe: {timeframe})\n🔥 Price has *broken above EMA 200* – long-term uptrend confirmed!"
+        signal_message = f"🚀 *STRONG BULLISH SIGNAL!* {symbol} ({timeframe})\n🔥 *Price broke above EMA 200!* Long-term uptrend confirmed!"
 
     return signal_message
 
