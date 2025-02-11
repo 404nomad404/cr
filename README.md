@@ -91,4 +91,12 @@ That's it!
 <a href="https://ibb.co/Xf2GggtK"><img src="https://i.ibb.co/dsWHqqDV/SCR-20250211-rfkg.png" alt="SCR-20250211-rfkg" border="0"></a>
 
 - RSI for Overbought/Oversold Conditions
+  >-If RSI is above 50, it suggests bullish momentum—strengthening buy signals.
+  >
+  >-if RSI is below 50, it suggests bearish momentum—validating sell signals.
 - Study RSI, MACD, or volume to reduce fake signals.
+- Add backtesting feature:
+> 1.	Fetch historical price data (OHLCV - Open, High, Low, Close, Volume).
+> 2.	Apply the strategy (e.g., EMA crossovers + RSI confirmation).
+> 3.	Simulate trade execution (Buy when criteria are met, sell when exit conditions occur).
+> 4.	Calculate performance metrics (profit/loss %, max drawdown, win rate).
