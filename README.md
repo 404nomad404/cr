@@ -55,16 +55,14 @@ pip install ccxt requests websocket-client pandas numpy python-telegram-bot
 - 	Add your Binance API keys (api_key, api_secret)
 - 	Add your Telegram Bot Token and Chat ID
 
-##### 2. Install Dependencies:
-```
-pip install ccxt requests websocket-client pandas numpy python-telegram-bot
-```
-##### 3. Run the Script:
+##### 2. Run the Script:
 ```
 python crypto_alert_bot.py
 ```
 
+That's it!
+
 ## 📌 What I DID NOT DO
 - Add automatic order execution to buy/sell directly on Binance. 
-- Haha can do if there's a safe sandbox i can play around. Do it manually-lah, jgn malas 😂
+- Can do if there's a safe sandbox i can play around. Do it manually-lah for now, jgn malas 😂
  
