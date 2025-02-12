@@ -107,7 +107,11 @@ That's it!
   >-If RSI is above 50, it suggests bullish momentum—strengthening buy signals.
   >
   >-if RSI is below 50, it suggests bearish momentum—validating sell signals.
+  >
+  ><a href="https://ibb.co/JWwsGwnK"><img src="https://i.ibb.co/Kcprfp6X/01-SCR-20250212-krnx.png" alt="01-SCR-20250212-krnx" border="0"></a>
+  >
   ><a href="https://ibb.co/kgJQzB1T"><img src="https://i.ibb.co/nsBz4mCy/SCR-20250211-trdm.png" alt="SCR-20250211-trdm" border="0"></a>
+  
 - backtest (In progress)
   >Loads historical Binance data
   >
@@ -122,5 +126,31 @@ That's it!
   >Graph with buy/sell signals (matplotlib)
   >
   >tune recipe with chatgpt
+  >
+  > Some initial backtesting results:
+  ```
+  initial_balance=1000
+  INTERVAL = "1d"  # Backtest on 1d candles
+  LIMIT = 1000  # Number of historical candles to fetch
+  ```
+  >
+  <a href="https://ibb.co/9HBwFrcF"><img src="https://i.ibb.co/yFKhwQdw/Figure-1.png" alt="Figure-1" border="0"></a>
+  
+  	>🔹 Final Balance: $1941.38
+   	>
+   	>🔹 Profit/Loss: $941.38
+   	>
+   	>🔹 Win Rate: 39.13%
+   
+   <a href="https://ibb.co/hF3JsHyz"><img src="https://i.ibb.co/9HQkn2N5/Figure-2.png" alt="Figure-2" border="0"></a>
+   
+	>🔹 Final Balance: $4363.90
+ 	>
+ 	>🔹 Profit/Loss: $3363.90
+	>
+ 	>🔹 Win Rate: 100.00%
+
+	not bad!
+
   
 
