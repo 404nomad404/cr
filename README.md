@@ -116,21 +116,21 @@ That's it!
 
 	1. BTC/USDT
 
-  <a href="https://ibb.co/bjGbWsvK"><img src="https://i.ibb.co/XfGY275C/Figure-1.png" alt="Figure-1" border="0"></a>
+  <a href="https://ibb.co/5h9LSHrx"><img src="https://i.ibb.co/PGYgPHcz/Figure-1.png" alt="Figure-1" border="0"></a>
   
-  	>🔹 Final Balance: $1941.38
+  	>🔹 Final Balance: $2583.37
    	>
-   	>🔹 Profit/Loss: $941.38
+   	>🔹 Profit/Loss: $1583.37
    	>
-   	>🔹 Win Rate: 39.13%
+   	>🔹 Win Rate: 90.00%
 
    	2. WLD/USDT
  
-   <a href="https://ibb.co/HpLdhL4R"><img src="https://i.ibb.co/JFWQ3Wt8/Figure-1.png" alt="Figure-1" border="0"></a>
+   <a href="https://ibb.co/bMg6QJ2P"><img src="https://i.ibb.co/gLMrmVP3/Figure-1.png" alt="Figure-1" border="0"></a>
    
-	>🔹 Final Balance: $4363.90
+	>🔹 Final Balance: $4958.06
  	>
- 	>🔹 Profit/Loss: $3363.90
+ 	>🔹 Profit/Loss: $3958.06
 	>
  	>🔹 Win Rate: 100.00%
 
