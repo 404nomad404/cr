@@ -74,6 +74,19 @@ That's it!
 
 ## 📌 How to Run the backtest script
 
+🚀 Enhancements Added
+- ✅ Fetches historical data from Binance
+- ✅ Allows selecting any cryptocurrency pair for backtesting
+- ✅ Calculates EMA-based BUY/SELL signals
+- ✅ Tracks and simulates trading with a $1000 starting balance
+- ✅ Plots price, EMA lines, and trade markers (BUY/SELL signals)
+- 📊 Outputs
+	- ✅ Final Balance
+ 	- ✅ Total Profit/Loss
+  	- ✅ Win Rate (%)
+  	- ✅ Trade Log (timestamps & prices)
+  	- ✅ Chart with buy/sell signals
+
 ##### 1. Install the required Python libraries:
     
 ```
@@ -82,16 +95,12 @@ pip install matplotlib
     
 ##### 2. Run the Script:
 ```
-    python backtest.py
+python backtest.py
 ```
 ##### 3. Enter crypto pair (e.g., BTCUSDT, ETHUSDT, WLDUSDT)
-##### 4. The script will:
 
-- Fetch historical data 📊
-- Calculate EMA crossovers 🔄
-- Execute trades 🏦
-- Display profit/loss, win rate, and trade log 📈💰
-- Plot a chart with price, EMA lines, and trade markers 🎯
+<a href="https://ibb.co/5XNzxsWZ"><img src="https://i.ibb.co/hxPn12R0/SCR-20250212-odeo.png" alt="SCR-20250212-odeo" border="0"></a>
+
     
 ## 📌 What I DID NOT do
 - Add automatic order execution to buy/sell directly on Binance. 
@@ -117,16 +126,7 @@ pip install matplotlib
   >
   
   
-- backtest (In progress)
-    - Loads historical Binance data
-    - Applies EMA crossovers, Support/Resistance, RSI rules
-    - Simulate buy/sell trades as per recipe in bot
-    - Calculates balance, total profit/loss, win rate, and performance metrics
-    - Trade Log (timestamps & prices)
-    - Graph with buy/sell signals (matplotlib)
-    - Tune recipe with chatgpt
-  
-
+- backtest (In progress)    
   *Some initial backtesting results:*
   ```
   INITIAL_BALANCE = 1000
