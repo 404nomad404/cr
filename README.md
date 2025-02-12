@@ -62,6 +62,8 @@ python crypto_alert_bot.py
 ```
 <a href="https://ibb.co/96qHnMM"><img src="https://i.ibb.co/Dh7f4qq/SCR-20250212-mfwo.png" alt="SCR-20250212-mfwo" border="0"></a>
 
+<a href="https://ibb.co/Tx4JhjZM"><img src="https://i.ibb.co/wFS86GTh/SCR-20250212-mrjg.png" alt="SCR-20250212-mrjg" border="0"></a>
+
 That's it!
 
 ## 📌 What I DID NOT DO
