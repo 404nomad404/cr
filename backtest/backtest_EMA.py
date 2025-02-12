@@ -1,11 +1,22 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Ishafizan'
 __date__ = "12 Feb 2025"
-
+"""
+This script:
+	•	Fetches historical data from Binance
+	•	Computes EMAs (7, 21, 50, 100, 200)
+	•	Implements buy/sell logic based on your requested criteria
+	•	Simulates trades and calculates final balance, profit/loss, win rate, and trade logs
+	•	Plots the price, EMAs, and buy/sell signals
+"""
+import os, sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import requests
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+sys.path.append(BASE_DIR)
 import settings
 from utils import util_log
 
@@ -45,7 +56,9 @@ df["EMA200"] = df["close"].ewm(span=200, adjust=False).mean()
 
 # Generate BUY/SELL signals based on EMA crossovers
 df["Signal"] = np.nan
+# BUY
 df.loc[(df["EMA7"] > df["EMA21"]) & (df["EMA7"].shift(1) <= df["EMA21"].shift(1)), "Signal"] = "BUY"
+# SELL
 df.loc[(df["EMA7"] < df["EMA21"]) & (df["EMA7"].shift(1) >= df["EMA21"].shift(1)), "Signal"] = "SELL"
 
 # Filter BUY & SELL signals
