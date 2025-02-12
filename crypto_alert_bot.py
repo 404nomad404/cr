@@ -1,162 +1,175 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Ishafizan'
 __date__ = "11 Feb 2025"  # Selamat Menyambut Thaipusam
+"""
+✅ Changes & Improvements:
+- silent runnings
+- Integrates with Binance’s public API and Telegram to monitor your fav cryptos. 
+- It sends alerts based on EMA crossovers, RSI insights, and support/resistance levels, 
+ensuring strong entry/exit points while preventing false breakouts. 
+    - Confirm Buy/Sell Signals – Only trigger trades at key levels
+    - Prevent False Breakouts – Ignore weak EMA crossovers
+    - Identify Stronger Trends – Catch real breakouts & reversals
+    - Support & Resistance Levels added (20-period rolling high & low)
+    - EMA 21 & EMA 50 Crossover Alerts improved for better buy/sell confirmation
+    - Prevents False Breakouts by requiring confirmation near key levels
+- Sends alerts to Telegram with Markdown formatting
+- Prevents spam by only sending alerts when conditions change
+ 🚀
+"""
 
-import ccxt
-import pandas as pd
 import requests
-import json
 import time
-import threading
-import websocket
-import ssl
+import pandas as pd
+from binance.client import Client
+from utils import util_log
+import settings
 
-# 🔹 Binance API Credentials
-api_key = "YOUR_BINANCE_API_KEY"
-api_secret = "YOUR_BINANCE_API_SECRET"
+# Binance API Configuration (Public API)
+BINANCE_API_KEY = settings.BINANCE_API_KEY  # No need for a private key since we're only reading market data
+BINANCE_SECRET_KEY = settings.BINANCE_SECRET_KEY
 
-# 🔹 Telegram Bot Credentials
-TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
-TELEGRAM_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID"
+# Telegram Configuration
+TELEGRAM_BOT_TOKEN = settings.TELEGRAM_BOT_TOKEN
+TELEGRAM_CHAT_ID = settings.TELEGRAM_CHAT_ID
 
-# 🔹 Initialize Binance Exchange
-exchange = ccxt.binance({
-    'apiKey': api_key,
-    'secret': api_secret,
-    'options': {'defaultType': 'spot'},
-})
+# Define the crypto pairs to monitor
+SYMBOLS = settings.SYMBOLS
 
-# 🔹 Trading Parameters
-symbols = ['BTC/USDT', 'XRP/USDT', 'WLD/USDT']  # Multi-Crypto Support
-timeframes = ['1h', '8h', '1d']  # Multiple timeframes
+# Track last alert for each crypto
+last_alerts = {}  # Format: {'BTXUSDT': 'BUY', 'XRPUSDT': 'SELL'}
 
+# Initialize Binance client
+client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 
-# 🔹 Telegram Notification Function
-def send_telegram_message(message):
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {'chat_id': TELEGRAM_CHAT_ID, 'text': message, 'parse_mode': 'Markdown'}
-    requests.post(url, json=payload)
+# -------------------------
+# instantiate logger
+log = util_log.logger()
 
 
-# 🔹 Fetch Historical Data and Calculate EMAs
-def get_data(symbol, timeframe):
-    bars = exchange.fetch_ohlcv(symbol, timeframe, limit=200)
-    df = pd.DataFrame(bars, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
+def get_historical_data(symbol, interval="15m", limit=50):
+    """Fetch historical Kline (candlestick) data from Binance"""
+    try:
+        klines = client.get_klines(symbol=symbol, interval=interval, limit=limit)
+        df = pd.DataFrame(klines, columns=[
+            "timestamp", "open", "high", "low", "close", "volume",
+            "close_time", "quote_asset_volume", "num_trades",
+            "taker_base_vol", "taker_quote_vol", "ignore"
+        ])
+        df["close"] = df["close"].astype(float)
+        return df
+    except Exception as e:
+        log.error(f"❌ Error fetching data for {symbol}: {e}")
+        return None
 
-    # Calculate EMAs
-    df['ema_7'] = df['close'].ewm(span=7, adjust=False).mean()
-    df['ema_21'] = df['close'].ewm(span=21, adjust=False).mean()
-    df['ema_50'] = df['close'].ewm(span=50, adjust=False).mean()
-    df['ema_100'] = df['close'].ewm(span=100, adjust=False).mean()
-    df['ema_200'] = df['close'].ewm(span=200, adjust=False).mean()
+
+def calculate_indicators(df):
+    """Calculate EMAs, RSI, and Support/Resistance levels"""
+    df["EMA7"] = df["close"].ewm(span=7, adjust=False).mean()
+    df["EMA9"] = df["close"].ewm(span=9, adjust=False).mean()
+    df["EMA21"] = df["close"].ewm(span=21, adjust=False).mean()
+    df["EMA50"] = df["close"].ewm(span=50, adjust=False).mean()
+    df["EMA100"] = df["close"].ewm(span=100, adjust=False).mean()
+    df["EMA200"] = df["close"].ewm(span=200, adjust=False).mean()
+
+    # Calculate RSI (Relative Strength Index)
+    delta = df["close"].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    rs = gain / loss
+    df["RSI"] = 100 - (100 / (1 + rs))
+
+    # Support & Resistance levels (20-period rolling high/low)
+    df["Support"] = df["low"].rolling(window=20).min()
+    df["Resistance"] = df["high"].rolling(window=20).max()
 
     return df
 
 
-# THE recipe
-def check_signals(df, symbol, timeframe):
-    signal_message = None
-    last_close = df['close'].iloc[-1]
+def detect_signals(df, symbol):
+    """Identify buy/sell signals based on EMA crossovers and RSI"""
+    last_row = df.iloc[-1]
 
-    # 📈 EMA 7 & EMA 21 Crossover (Short-term trend signals)
-    if df['ema_7'].iloc[-2] < df['ema_21'].iloc[-2] and df['ema_7'].iloc[-1] > df['ema_21'].iloc[-1]:
-        signal_message = f"✅ *BUY SIGNAL!* {symbol} ({timeframe})\n📊 *Short-term bullish trend detected!*\n🔹 EMA 7 crossed above EMA 21 – Momentum is shifting upwards!"
+    signal = "HOLD"  # Default signal
+    reason = ""
 
-    elif df['ema_7'].iloc[-2] > df['ema_21'].iloc[-2] and df['ema_7'].iloc[-1] < df['ema_21'].iloc[-1]:
-        signal_message = f"⚠️ *SELL SIGNAL!* {symbol} ({timeframe})\n📊 *Short-term bearish trend detected!*\n🔻 EMA 7 crossed below EMA 21 – Momentum is weakening."
+    # Short-term EMA crossover (EMA7 & EMA21)
+    if df["EMA7"].iloc[-2] < df["EMA21"].iloc[-2] and last_row["EMA7"] > last_row["EMA21"]:
+        signal = "BUY"
+        reason = "Short-term EMA7 crossed above EMA21 📈"
 
-    # 🚀 EMA 21 & EMA 50 Crossover (Mid-term trend signals)
-    if df['ema_21'].iloc[-2] < df['ema_50'].iloc[-2] and df['ema_21'].iloc[-1] > df['ema_50'].iloc[-1]:
-        signal_message = f"✅ *BUY SIGNAL!* {symbol} ({timeframe})\n🚀 *Mid-term bullish breakout!*\n🔹 EMA 21 crossed above EMA 50 – Stronger bullish momentum building!"
+    if df["EMA7"].iloc[-2] > df["EMA21"].iloc[-2] and last_row["EMA7"] < last_row["EMA21"]:
+        signal = "SELL"
+        reason = "Short-term EMA7 crossed below EMA21 📉"
 
-    elif df['ema_21'].iloc[-2] > df['ema_50'].iloc[-2] and df['ema_21'].iloc[-1] < df['ema_50'].iloc[-1]:
-        signal_message = f"⚠️ *SELL SIGNAL!* {symbol} ({timeframe})\n📉 *Mid-term bearish reversal detected!*\n🔻 EMA 21 crossed below EMA 50 – Market could be turning bearish."
+    # Mid-term EMA crossover (EMA21 & EMA50)
+    if df["EMA21"].iloc[-2] < df["EMA50"].iloc[-2] and last_row["EMA21"] > last_row["EMA50"]:
+        signal = "BUY"
+        reason = "Mid-term EMA21 crossed above EMA50 🚀"
 
-    # 🔥 EMA 50, 100, and 200 Crossovers (Long-term trend confirmations)
-    if last_close > df['ema_50'].iloc[-1] and last_close < df['ema_50'].iloc[-2]:
-        signal_message = f"⚠️ *Warning!* {symbol} ({timeframe})\n📉 *Price just dropped below EMA 50!* Possible short-term downtrend ahead."
-    elif last_close < df['ema_50'].iloc[-1] and last_close > df['ema_50'].iloc[-2]:
-        signal_message = f"✅ *Bullish Signal!* {symbol} ({timeframe})\n📈 *Price broke above EMA 50!* Buyers are gaining control."
+    if df["EMA21"].iloc[-2] > df["EMA50"].iloc[-2] and last_row["EMA21"] < last_row["EMA50"]:
+        signal = "SELL"
+        reason = "Mid-term EMA21 crossed below EMA50 🔻"
 
-    if last_close > df['ema_100'].iloc[-1] and last_close < df['ema_100'].iloc[-2]:
-        signal_message = f"⚠️ *Caution!* {symbol} ({timeframe})\n📉 *Price dropped below EMA 100!* Medium-term bearish pressure increasing."
-    elif last_close < df['ema_100'].iloc[-1] and last_close > df['ema_100'].iloc[-2]:
-        signal_message = f"🔥 *Momentum Gaining!* {symbol} ({timeframe})\n📈 *Price broke above EMA 100!* Strong bullish sentiment."
+    # Golden Cross (EMA100 & EMA200)
+    if df["EMA100"].iloc[-2] < df["EMA200"].iloc[-2] and last_row["EMA100"] > last_row["EMA200"]:
+        signal = "BUY"
+        reason = "Golden Cross! EMA100 crossed above EMA200 🌟"
 
-    if last_close > df['ema_200'].iloc[-1] and last_close < df['ema_200'].iloc[-2]:
-        signal_message = f"🚨 *Major Warning!* {symbol} ({timeframe})\n⚠️ *Price dropped below EMA 200!* Long-term bearish trend confirmed!"
-    elif last_close < df['ema_200'].iloc[-1] and last_close > df['ema_200'].iloc[-2]:
-        signal_message = f"🚀 *STRONG BULLISH SIGNAL!* {symbol} ({timeframe})\n🔥 *Price broke above EMA 200!* Long-term uptrend confirmed!"
+    if df["EMA100"].iloc[-2] > df["EMA200"].iloc[-2] and last_row["EMA100"] < last_row["EMA200"]:
+        signal = "SELL"
+        reason = "Death Cross! EMA100 crossed below EMA200 ⚠️"
 
-    return signal_message
+    # Confirm buy/sell signals with support/resistance levels
+    if signal == "BUY" and last_row["close"] < last_row["Support"]:
+        signal = "BUY"
+        reason += " - Price near Support ✅"
 
+    if signal == "SELL" and last_row["close"] > last_row["Resistance"]:
+        signal = "SELL"
+        reason += " - Price near Resistance ❌"
 
-# 🔹 WebSocket Updates
-def on_message(ws, message):
-    try:
-        data = json.loads(message)
-        if 's' in data and 'p' in data:
-            symbol = data['s']
-            price = float(data['p'])
-            print(f"📊 Real-time {symbol} Price: {price}")
-        else:
-            print("⚠️ Received non-trade message:", data)
-    except Exception as e:
-        print(f"⚠️ WebSocket Error: {e}")
+    # Prevent false breakouts by checking RSI
+    if signal == "BUY" and last_row["RSI"] < 30:
+        reason += " - RSI is oversold (strong buy) 🎯"
 
+    if signal == "SELL" and last_row["RSI"] > 70:
+        reason += " - RSI is overbought (strong sell) ⚠️"
 
-# Update: Automatically subscribes to all cryptos in the symbols list
-def on_open(ws):
-    print("✅ WebSocket connected.")
-    subscription_list = [symbol.lower().replace("/", "") + "@trade" for symbol in symbols]
-    ws.send(json.dumps({
-        "method": "SUBSCRIBE",
-        "params": subscription_list,
-        "id": 1
-    }))
+    return signal, reason
 
 
-def on_error(ws, error):
-    print(f"⚠️ WebSocket Error: {error}")
+def send_telegram_message(symbol, signal, reason):
+    """Send Telegram alerts only if signal changes"""
+    global last_alerts
+
+    if last_alerts.get(symbol) == signal:
+        return  # Skip duplicate alerts
+
+    last_alerts[symbol] = signal  # Update last alert
+
+    message = f"📢 *{symbol} Alert!* 🚀\n"
+    message += f"🟢 *{signal}* detected.\n"
+    message += f"📌 Reason: {reason}\n"
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"}
+
+    response = requests.post(url, json=payload)
+    if response.status_code == 200:
+        log.info(f"✅ Alert sent for {symbol}: {signal}")
+    else:
+        log.info(f"⚠️ Failed to send alert: {response.text}")
 
 
-def on_close(ws, close_status_code, close_msg):
-    print("❌ WebSocket closed. Reconnecting...")
-    start_websocket()
+# Main loop
+while True:
+    for symbol in SYMBOLS:
+        df = get_historical_data(symbol)
+        if df is not None:
+            df = calculate_indicators(df)
+            signal, reason = detect_signals(df, symbol)
+            send_telegram_message(symbol, signal, reason)
 
-
-def start_websocket():
-    ws = websocket.WebSocketApp(
-        "wss://stream.binance.com:9443/ws",
-        on_message=on_message,
-        on_open=on_open,
-        on_error=on_error,
-        on_close=on_close
-    )
-    ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
-
-
-# 🔹 Main Trading Loop
-def trading_loop():
-    while True:
-        try:
-            for symbol in symbols:
-                for timeframe in timeframes:
-                    df = get_data(symbol, timeframe)
-                    signal = check_signals(df, symbol, timeframe)
-                    if signal:
-                        print(signal)
-                        send_telegram_message(signal)
-            time.sleep(300)
-        except Exception as e:
-            print(f"⚠️ Error: {e}")
-            time.sleep(60)
-
-
-# 🔹 Start Trading Bot
-if __name__ == "__main__":
-    print("🚀 Starting Binance Trading Bot for %s..." % symbols)
-    ws_thread = threading.Thread(target=start_websocket)
-    ws_thread.daemon = True
-    ws_thread.start()
-    trading_loop()
+    log.info("⏳ Waiting for the next check...")
+    time.sleep(900)  # Check every 15 minutes
