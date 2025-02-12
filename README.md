@@ -116,7 +116,7 @@ That's it!
 
 	1. BTC/USDT
 
-  <a href="https://ibb.co/9HBwFrcF"><img src="https://i.ibb.co/yFKhwQdw/Figure-1.png" alt="Figure-1" border="0"></a>
+  <a href="https://ibb.co/bjGbWsvK"><img src="https://i.ibb.co/XfGY275C/Figure-1.png" alt="Figure-1" border="0"></a>
   
   	>🔹 Final Balance: $1941.38
    	>
@@ -126,7 +126,7 @@ That's it!
 
    	2. WLD/USDT
  
-   <a href="https://ibb.co/hF3JsHyz"><img src="https://i.ibb.co/9HQkn2N5/Figure-2.png" alt="Figure-2" border="0"></a>
+   <a href="https://ibb.co/HpLdhL4R"><img src="https://i.ibb.co/JFWQ3Wt8/Figure-1.png" alt="Figure-1" border="0"></a>
    
 	>🔹 Final Balance: $4363.90
  	>
