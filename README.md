@@ -63,7 +63,7 @@ python crypto_alert_bot.py
 
 <a href="https://ibb.co/Tx4JhjZM"><img src="https://i.ibb.co/wFS86GTh/SCR-20250212-mrjg.png" alt="SCR-20250212-mrjg" border="0"></a>
 
-<a href="https://ibb.co/SwG8dCpn"><img src="https://i.ibb.co/0yvSFb3M/SCR-20250212-naid.png" alt="SCR-20250212-naid" border="0"></a>
+<a href="https://ibb.co/GfTGf5hG"><img src="https://i.ibb.co/BHNvHC1v/SCR-20250212-navp.png" alt="SCR-20250212-navp" border="0"></a>
 
 That's it!
 
