@@ -112,11 +112,11 @@ def detect_signals(df, symbol):
         reason = "Mid-term EMA21 crossed below EMA50 🔻"
 
     # Mid-term EMA crossover (EMA50 & EMA100)
-    if df["EMA50"].iloc[i - 1] < df["EMA100"].iloc[i - 1] and df["EMA50"].iloc[i] > df["EMA100"].iloc[i]:
+    if df["EMA50"].iloc[-2] < df["EMA100"].iloc[-2] and last_row["EMA50"] > last_row["EMA100"]:
         signal = "BUY"
         reason = "Mid-term EMA50 crossed above EMA100 🚀"
 
-    if df["EMA50"].iloc[i - 1] > df["EMA100"].iloc[i - 1] and df["EMA50"].iloc[i] < df["EMA100"].iloc[i]:
+    if df["EMA50"].iloc[-2] > df["EMA100"].iloc[-2] and last_row["EMA50"] < last_row["EMA100"]:
         signal = "SELL"
         reason = "Mid-term EMA50 crossed below EMA100 🔻"
 
