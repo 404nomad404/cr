@@ -64,14 +64,14 @@ python crypto_alert_bot.py
 
 <a href="https://ibb.co/Tx4JhjZM"><img src="https://i.ibb.co/wFS86GTh/SCR-20250212-mrjg.png" alt="SCR-20250212-mrjg" border="0"></a>
 
-## *TIP* ##
+That's it!
+
+## 📌*TIP* ##
 - Added "- Price near Support ✅" or " - RSI is overbought (strong sell) ⚠️" messages in the Telegram alerts
 	- Confirm buy/sell signals with support/resistance levels
  	- Prevent false breakouts by checking RSI
 
-That's it!
-
-## 📌 What I DID NOT DO
+## 📌 What I DID NOT do
 - Add automatic order execution to buy/sell directly on Binance. 
 - Can do if there's a safe sandbox i can play around. Do it manually-lah for now, jgn malas 😂
  
