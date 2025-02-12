@@ -10,12 +10,28 @@ This script:
 	•	Implements buy/sell logic based on your requested criteria
 	•	Simulates trades and calculates final balance, profit/loss, win rate, and trade logs
 	•	Plots the price, EMAs, and buy/sell signals
+Updates:
+1. Added BUY Conditions:
+	•	EMA crossover happens AND RSI < 30 (oversold) OR price is near support.
+2. Added SELL Conditions:
+	•	EMA crossover happens AND RSI > 70 (overbought) OR price is near resistance.
+3. Added Backtest Logic:
+	•	Trades execute if the combined conditions are met.
+	
 """
 import os, sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import requests
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+sys.path.append(BASE_DIR)
+import settings
+from utils import util_log
+
+# Instantiate logger
+log = util_log.logger()
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 sys.path.append(BASE_DIR)
@@ -37,6 +53,8 @@ def fetch_binance_data(symbol, interval="1d", limit=1000):
                                      "ignore"])
     df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
     df["close"] = df["close"].astype(float)
+    df["high"] = df["high"].astype(float)
+    df["low"] = df["low"].astype(float)
     df.set_index("timestamp", inplace=True)
 
     return df[["close", "high", "low"]]
@@ -78,8 +96,28 @@ df["EMA200"] = df["close"].ewm(span=200, adjust=False).mean()
 df = calculate_rsi(df)
 df = detect_support_resistance(df)
 
-# Generate BUY/SELL signals based on new criteria
+# Generate BUY/SELL signals based on combined conditions
 df["Signal"] = np.nan
+
+# Define conditions
+buy_condition = (df["RSI"] < 30) | (df["close"] <= df["Support"] * 1.01)  # RSI Oversold OR Near Support
+sell_condition = (df["RSI"] > 70) | (df["close"] >= df["Resistance"] * 0.99)  # RSI Overbought OR Near Resistance
+
+# Apply combined EMA crossover & RSI/Support-Resistance logic
+df.loc[
+    (df["EMA100"] > df["EMA200"]) & (df["EMA100"].shift(1) <= df["EMA200"].shift(1)) & buy_condition, "Signal"] = "BUY"
+df.loc[(df["EMA100"] < df["EMA200"]) & (
+        df["EMA100"].shift(1) >= df["EMA200"].shift(1)) & sell_condition, "Signal"] = "SELL"
+
+df.loc[(df["EMA21"] > df["EMA50"]) & (df["EMA21"].shift(1) <= df["EMA50"].shift(1)) & buy_condition, "Signal"] = "BUY"
+df.loc[(df["EMA21"] < df["EMA50"]) & (df["EMA21"].shift(1) >= df["EMA50"].shift(1)) & sell_condition, "Signal"] = "SELL"
+
+df.loc[(df["EMA50"] > df["EMA100"]) & (df["EMA50"].shift(1) <= df["EMA100"].shift(1)) & buy_condition, "Signal"] = "BUY"
+df.loc[
+    (df["EMA50"] < df["EMA100"]) & (df["EMA50"].shift(1) >= df["EMA100"].shift(1)) & sell_condition, "Signal"] = "SELL"
+
+df.loc[(df["EMA7"] > df["EMA21"]) & (df["EMA7"].shift(1) <= df["EMA21"].shift(1)) & buy_condition, "Signal"] = "BUY"
+df.loc[(df["EMA7"] < df["EMA21"]) & (df["EMA7"].shift(1) >= df["EMA21"].shift(1)) & sell_condition, "Signal"] = "SELL"
 
 # EMA Crossovers
 df.loc[
@@ -92,14 +130,6 @@ df.loc[(df["EMA50"] > df["EMA100"]) & (df["EMA50"].shift(1) <= df["EMA100"].shif
 df.loc[(df["EMA50"] < df["EMA100"]) & (df["EMA50"].shift(1) >= df["EMA100"].shift(1)), "Signal"] = "SELL"
 df.loc[(df["EMA7"] > df["EMA21"]) & (df["EMA7"].shift(1) <= df["EMA21"].shift(1)), "Signal"] = "BUY"
 df.loc[(df["EMA7"] < df["EMA21"]) & (df["EMA7"].shift(1) >= df["EMA21"].shift(1)), "Signal"] = "SELL"
-
-# RSI Conditions
-df.loc[df["RSI"] < 30, "Signal"] = "BUY"  # RSI oversold
-df.loc[df["RSI"] > 70, "Signal"] = "SELL"  # RSI overbought
-
-# Support/Resistance
-df.loc[df["close"] <= df["Support"] * 1.01, "Signal"] = "BUY"  # Near Support
-df.loc[df["close"] >= df["Resistance"] * 0.99, "Signal"] = "SELL"  # Near Resistance
 
 # Filter BUY & SELL signals
 buy_signals = df[df["Signal"] == "BUY"]
@@ -116,24 +146,26 @@ loss_count = 0
 # Simulated Trading Execution
 for index, row in df.iterrows():
     if row["Signal"] == "BUY" and balance > 0:
-        position = balance / row["close"]
+        position = balance / row["close"]  # Buy crypto with full balance
         balance = 0
         trade_log.append((index, "BUY", row["close"]))
+        log.info(f"BUY at {row['close']} on {index}")
 
     elif row["Signal"] == "SELL" and position > 0:
-        balance = position * row["close"]
+        balance = position * row["close"]  # Sell all crypto
         profit_loss = balance - initial_balance
         trade_log.append((index, "SELL", row["close"], profit_loss))
+        log.info(f"SELL at {row['close']} on {index} | Profit/Loss: {profit_loss:.2f}")
 
         if profit_loss > 0:
             win_count += 1
         else:
             loss_count += 1
 
-        position = 0
+        position = 0  # Reset position
 
 # Final Balance Calculation
-final_balance = balance if balance > 0 else position * df["close"].iloc[-1]
+final_balance = balance if balance > 0 else position * df["close"].iloc[-1]  # If holding, sell at last price
 profit_loss = final_balance - initial_balance
 win_rate = (win_count / max(1, (win_count + loss_count))) * 100
 
@@ -147,19 +179,11 @@ log.info("\nTrade Log:")
 for trade in trade_log:
     log.info(trade)
 
-# Plot price and EMA lines
+# Plot results
 plt.figure(figsize=(12, 6))
 plt.plot(df.index, df["close"], label="Price", color="blue", alpha=0.7)
-plt.plot(df.index, df["EMA7"], label="EMA7", color="cyan", linestyle="dashed")
-plt.plot(df.index, df["EMA21"], label="EMA21", color="magenta", linestyle="dashed")
-plt.plot(df.index, df["EMA50"], label="EMA50", color="orange", linestyle="dashed")
-plt.plot(df.index, df["EMA100"], label="EMA100", color="purple", linestyle="dashed")
-plt.plot(df.index, df["EMA200"], label="EMA200", color="brown", linestyle="dashed")
-
-# Plot BUY and SELL markers
 plt.scatter(buy_signals.index, buy_signals["close"], marker="^", color="green", s=120, label="BUY", edgecolors='black')
 plt.scatter(sell_signals.index, sell_signals["close"], marker="v", color="red", s=120, label="SELL", edgecolors='black')
-
 plt.title(f"Backtest Results for {symbol}")
 plt.legend()
 plt.xticks(rotation=45)
