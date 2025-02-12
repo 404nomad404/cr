@@ -7,7 +7,7 @@ This script:
 	•	Computes EMAs (7, 21, 50, 100, 200)
 	•	Computes RSI (14-period)
 	•	Detects support/resistance levels
-	•   Trades execute based on EMA crossovers first (RSI & S/R act as filters). Reducing false trades
+	•   	Trades execute based on EMA crossovers first (RSI & S/R act as filters). Reducing false trades
 	•	Implements buy/sell logic based on your requested criteria
 	•	Simulates trades and calculates final balance, profit/loss, win rate, and trade logs
 	•	Plots the price, EMAs, and buy/sell signals	
