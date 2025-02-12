@@ -64,6 +64,11 @@ python crypto_alert_bot.py
 
 <a href="https://ibb.co/Tx4JhjZM"><img src="https://i.ibb.co/wFS86GTh/SCR-20250212-mrjg.png" alt="SCR-20250212-mrjg" border="0"></a>
 
+## *TIP* ##
+- wait for "- Price near Support ✅" or " - RSI is overbought (strong sell) ⚠️" messages in the Telegram alerts
+	- Confirm buy/sell signals with support/resistance levels
+ 	- Prevent false breakouts by checking RSI
+
 That's it!
 
 ## 📌 What I DID NOT DO
