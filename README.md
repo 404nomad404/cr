@@ -9,7 +9,7 @@ ensuring strong entry/exit points while preventing false breakouts.
     - Uses Markdown in Telegram for better readability
 
       Telegram message examples:
-      ><a href="https://ibb.co/ZpZW6k70"><img src="https://i.ibb.co/Kp1Fj3SJ/SCR-20250212-mjbj.png" alt="SCR-20250212-mjbj" border="0"></a>
+      ><a href="https://ibb.co/YFT9QX77"><img src="https://i.ibb.co/sdJSRCvv/SCR-20250212-mlep.png" alt="SCR-20250212-mlep" border="0"></a>
 -   Uses Binance WebSockets for real-time updates. Its public API allows users to access market data, such as price and trading volume, WITHOUT any cost
 -   Runs continuously, checking the market every 15 minutes 
 
