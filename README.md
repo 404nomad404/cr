@@ -67,11 +67,32 @@ python crypto_alert_bot.py
 
 That's it!
 
-## 📌*TIP* ##
+## ⚠️*TIP* ##
 - Added "- Price near Support ✅" or " - RSI is overbought (strong sell) ⚠️" messages in the Telegram alerts
 	- Confirm buy/sell signals with support/resistance levels
  	- Prevent false breakouts by checking RSI
 
+## 📌 How to Run the backtest script
+
+##### 1. Install the required Python libraries:
+    
+```
+pip install matplotlib
+```
+    
+##### 2. Run the Script:
+```
+    python backtest.py
+```
+##### 3. Enter crypto pair (e.g., BTCUSDT, ETHUSDT, WLDUSDT)
+##### 4. The script will:
+
+- Fetch historical data 📊
+- Calculate EMA crossovers 🔄
+- Execute trades 🏦
+- Display profit/loss, win rate, and trade log 📈💰
+- Plot a chart with price, EMA lines, and trade markers 🎯
+    
 ## 📌 What I DID NOT do
 - Add automatic order execution to buy/sell directly on Binance. 
 - Can do if there's a safe sandbox i can play around. Do it manually-lah for now, jgn malas 😂
@@ -109,8 +130,6 @@ That's it!
   *Some initial backtesting results:*
   ```
   INITIAL_BALANCE = 1000
-  INTERVAL = "1d"  # Backtest on 1d candles
-  LIMIT = 1000  # Number of historical candles to fetch
   ```
   >
 
