@@ -1,7 +1,6 @@
 
 ## 📌 How This Works
 
-- ChatGPT assisted
 - It sends alerts based on EMA crossovers, RSI insights, and support/resistance levels, 
 ensuring strong entry/exit points while preventing false breakouts.
 -   Sends alerts to Telegram
