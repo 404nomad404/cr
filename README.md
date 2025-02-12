@@ -95,7 +95,8 @@ pip install matplotlib
     
 ##### 2. Run the Script:
 ```
-python backtest.py
+cd backtest
+python backtest_EMA.py
 ```
 ##### 3. Enter crypto pair (e.g., BTCUSDT, ETHUSDT, WLDUSDT)
 
