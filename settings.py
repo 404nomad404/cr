@@ -18,3 +18,6 @@ TELEGRAM_CHAT_ID = ""
 # ----------------------------------------------
 # CRYPTOs to monitor
 SYMBOLS = ["BTCUSDT", "XRPUSDT", "WLDUSDT", "ETHUSDT", "SOLUSDT"]
+# ----------------------------------------------
+INITIAL_BALANCE = 1000
+
