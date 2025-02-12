@@ -33,14 +33,6 @@ from utils import util_log
 # Instantiate logger
 log = util_log.logger()
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
-sys.path.append(BASE_DIR)
-import settings
-from utils import util_log
-
-# Instantiate logger
-log = util_log.logger()
-
 
 # Binance API URL for fetching historical data
 def fetch_binance_data(symbol, interval="1d", limit=1000):
