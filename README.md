@@ -45,7 +45,9 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
   - Determines if a trend is **strong (ADX > 25)** or **weak/ranging (ADX < 20)**.
   - Prevents false signals by avoiding trades in weak-trend conditions.
 - **Support & Resistance Detection**
-  - Detects **price near support (Buy Zone) or resistance (Sell Zone)**.  
+  - Detects **price near support (Buy Zone) or resistance (Sell Zone)**.
+    
+  <a href="https://ibb.co/Xf2GggtK"><img src="https://i.ibb.co/dsWHqqDV/SCR-20250211-rfkg.png" alt="SCR-20250211-rfkg" border="0"></a>
 
  
 ### 📡 **Automated Real-Time Alerts via Telegram**
@@ -83,7 +85,7 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
     - Go to Telegram Web and log in to your account
     - Select the group chat
     - The chat ID (numbers/digits) is in the URL in the address bar
-4.  Set up Binance API & Telegram Bot in `settings.py`
+4.  Set up Telegram Bot in `settings.py`
    ```python
 # settings.py
 
@@ -105,12 +107,14 @@ python crypto_alert_bot.py
 
 📌 Example Telegram Alert:
 
-✅ Sends a message with price trend alerts.
+	✅ Sends a message with price trend alerts.
 
-✅ Attaches a small trend chart showing the last 50 candles.
+	✅ Attaches a small trend chart showing the last 50 candles.
 
-✅ Helps visualize price movement before making decisions.
-<a href="https://ibb.co/SXvpH4kM"><img src="https://i.ibb.co/wN618FnP/SCR-20250213-tpon.png" alt="SCR-20250213-tpon" border="0"></a>
+	✅ Helps visualize price movement before making decisions.
+
+   <a href="https://ibb.co/SXvpH4kM"><img src="https://i.ibb.co/wN618FnP/SCR-20250213-tpon.png" alt="SCR-20250213-tpon" border="0"></a>
+
 
 ## 📌 How to Run the backtest script
 
@@ -142,58 +146,72 @@ python backtest_EMA.py
 
 <a href="https://ibb.co/5XNzxsWZ"><img src="https://i.ibb.co/hxPn12R0/SCR-20250212-odeo.png" alt="SCR-20250212-odeo" border="0"></a>
 
+Examples:    
+  
+   1. BTC/USDT
+
+  <a href="https://ibb.co/5h9LSHrx"><img src="https://i.ibb.co/PGYgPHcz/Figure-1.png" alt="Figure-1" border="0"></a>
+  
+  	🔹 Final Balance: $2583.37
+   	
+   	🔹 Profit/Loss: $1583.37
+   	
+   	🔹 Win Rate: 90.00%
+
+   2. WLD/USDT
+ 
+   <a href="https://ibb.co/bMg6QJ2P"><img src="https://i.ibb.co/gLMrmVP3/Figure-1.png" alt="Figure-1" border="0"></a>
+   
+	🔹 Final Balance: $4958.06
+ 	
+ 	🔹 Profit/Loss: $3958.06
+	
+ 	🔹 Win Rate: 100.00%
+
+   not bad!
     
 ## 📌 What I DID NOT do
 - Add automatic order execution to buy/sell directly on Binance. 
 - Can do if there's a safe sandbox i can play around. Do it manually-lah for now, jgn malas 😂
+
+## 📌 BOT IDEAS
+
+1. **Trade Confidence & Signal Strength**
+
+	✅ Signal Strength Meter – Assign confidence levels to signals (e.g., weak/medium/strong) based on multiple confirmations.
+
+	✅ Trend Score – Score from 1 to 100 based on EMAs, RSI, and momentum. Helps gauge bullish/bearish strength.
+
+
+2. **Additional Market Insights**
+
+	✅ Volume Analysis – Identify spikes in buying/selling volume to confirm trend strength.
+
+	✅ Volatility Indicator – Show if the market is trending or ranging to avoid fakeouts.
+
+	✅ MACD Indicator – Add another confirmation layer to trend shifts.
+
+
+3. **Improved Alerts & Decision Support**
+
+	✅ Risk/Reward Estimation – Suggest optimal entry price, stop-loss, and take-profit levels.
+
+	✅ Support/Resistance Breakout Detection – Alert when price breaks past key levels instead of just touching them.
+
+	✅ Whale Activity Alert – Detect unusual buy/sell volume spikes indicating large trader moves.
+
+	✅ Market Sentiment Check – Integrate data from sources like Binance funding rates to gauge trader sentiment.
+
+
+
+4. User Customization
+
+	✅ Adjustable Thresholds – Allow you to tweak RSI, EMA crossovers, and risk levels dynamically.
+
+	✅ Multi-Crypto Filtering – Rank and sort monitored cryptos based on trend strength.
  
-## 📌 R&D
-- Support/Resistance Levels (DONE)
-    >Support and resistance (S/R) levels help confirm buy/sell signals by identifying key price areas where the market has historically reversed or consolidated. Adding them to EMA-based strategy can:
-
-    >✅ Increase Trade Accuracy – Prevent false breakouts
-    
-    >✅ Confirm Buy/Sell Signals – Only trade when price respects key levels
-    
-    >✅ Identify Strong Entry & Exit Points – Buy near support, sell near resistance
-    
-    >✅ Detect Trend Reversals – When price breaks through strong S/R levels
-    ><a href="https://ibb.co/Xf2GggtK"><img src="https://i.ibb.co/dsWHqqDV/SCR-20250211-rfkg.png" alt="SCR-20250211-rfkg" border="0"></a>
-
-- RSI for Overbought/Oversold Conditions (DONE)
-  >-If RSI is above 50, it suggests bullish momentum—strengthening buy signals.
-  >
-  >-if RSI is below 50, it suggests bearish momentum—validating sell signals.
-  >
   
   
-- backtest (In progress)    
-  *Some initial backtesting results:*
-  ```
-  INITIAL_BALANCE = 1000
-  ```
-  >
 
-	1. BTC/USDT
-
-  <a href="https://ibb.co/5h9LSHrx"><img src="https://i.ibb.co/PGYgPHcz/Figure-1.png" alt="Figure-1" border="0"></a>
-  
-  	>🔹 Final Balance: $2583.37
-   	>
-   	>🔹 Profit/Loss: $1583.37
-   	>
-   	>🔹 Win Rate: 90.00%
-
-   	2. WLD/USDT
- 
-   <a href="https://ibb.co/bMg6QJ2P"><img src="https://i.ibb.co/gLMrmVP3/Figure-1.png" alt="Figure-1" border="0"></a>
-   
-	>🔹 Final Balance: $4958.06
- 	>
- 	>🔹 Profit/Loss: $3958.06
-	>
- 	>🔹 Win Rate: 100.00%
-
-	not bad!
 
   
