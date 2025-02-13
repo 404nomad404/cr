@@ -23,6 +23,13 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
   - Alerts when **RSI is overbought (>70) → Sell Signal**.  
 - **Average Directional Index (ADX)**
   - Implements ADX (Average Directional Index) to confirm trend strength.
+  - Adding trend detection can help you:
+    
+	>✅ Avoid bad trades by filtering weak signals.
+ 	>
+	>✅ Confirm strong buy/sell signals based on trend strength.
+  	>
+	>✅ Hold your position instead of reacting to every small price movement.
   - Identifies Strong Uptrend, Strong Downtrend, or Weak/Ranging Markets using EMA alignment and ADX strength.
   - Determines if a trend is **strong (ADX > 25)** or **weak/ranging (ADX < 20)**.
   - Prevents false signals by avoiding trades in weak-trend conditions.
