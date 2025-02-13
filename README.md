@@ -174,7 +174,7 @@ Examples:
 - Add automatic order execution to buy/sell directly on Binance. 
 - Can do if there's a safe sandbox i can play around. Do it manually-lah for now, jgn malas 😂
 
-## 📌 BOT IDEAS
+## 📌 FUTURE BOT IDEAS
 
 1. **Trade Confidence & Signal Strength**
 
