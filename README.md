@@ -8,19 +8,29 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 
 ## 🔥 Features  
 
+
+### ✅ **Real-time Market Monitoring**
+- Fetches historical price data from Binance every 15 minutes.
+- Supports multiple crypto pairs (configurable in settings.SYMBOLS).
+
 ### ✅ **Technical Indicators & Trend Analysis**
 - **Exponential Moving Averages (EMA)**  
   - Detects key **EMA crossovers** (7, 21, 50, 100, 200).  
   - Identifies **Golden Cross** (Bullish) and **Death Cross** (Bearish).  
 - **Relative Strength Index (RSI)**
+  - RSI-based alerts for momentum-based trades
   - Alerts when **RSI is oversold (<30) → Buy Signal**.  
   - Alerts when **RSI is overbought (>70) → Sell Signal**.  
 - **Average Directional Index (ADX)**
-  - Determines if a trend is **strong (ADX > 25)** or **weak/ranging (ADX < 20)**.  
+  - Implements ADX (Average Directional Index) to confirm trend strength.
+  - Identifies Strong Uptrend, Strong Downtrend, or Weak/Ranging Markets using EMA alignment and ADX strength.
+  - Determines if a trend is **strong (ADX > 25)** or **weak/ranging (ADX < 20)**.
+  - Prevents false signals by avoiding trades in weak-trend conditions.
 - **Support & Resistance Detection**
   - Detects **price near support (Buy Zone) or resistance (Sell Zone)**.  
 
-### 📡 **Real-Time Alerts via Telegram**
+ 
+### 📡 **Automated Real-Time Alerts via Telegram**
 - Sends **clear and meaningful** alerts in **Markdown format**.  
 - Prevents **spam** by sending alerts only when conditions change.  
 - Includes **price chart images** for better visualization.  
@@ -28,13 +38,15 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 ### ⚡ **Reliable Execution & Async Handling**
 - Handles **async Telegram alerts** to avoid `asyncio` issues.  
 - Uses **error handling** to prevent failures when sending messages.  
-- Monitors multiple cryptocurrencies simultaneously.  
+- Monitors multiple cryptocurrencies simultaneously.
+
 
 ## 🚀 How It Works  
 1. Fetches **live price data** from Binance API every 15 minutes.  
 2. Computes **technical indicators (EMA, RSI, ADX, Support/Resistance)**.  
 3. Detects **buy/sell signals** based on indicator crossovers & trend confirmation.  
-4. Sends **real-time alerts to Telegram** with price charts.  
+4. Sends **real-time alerts to Telegram** with price charts.
+5. The system ensures alerts are only sent when new conditions appear to prevent redundant notifications.
 
 ## 📂 **Setup Instructions**  
 1. Install dependencies:  
@@ -75,6 +87,11 @@ python crypto_alert_bot.py
 
 📌 Example Telegram Alert:
 
+✅ Sends a message with price trend alerts.
+
+✅ Attaches a small trend chart showing the last 50 candles.
+
+✅ Helps visualize price movement before making decisions.
 <a href="https://ibb.co/SXvpH4kM"><img src="https://i.ibb.co/wN618FnP/SCR-20250213-tpon.png" alt="SCR-20250213-tpon" border="0"></a>
 
 ## 📌 How to Run the backtest script
