@@ -16,7 +16,18 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 ### ✅ **Technical Indicators & Trend Analysis**
 - **Exponential Moving Averages (EMA)**  
   - Detects key **EMA crossovers** (7, 21, 50, 100, 200).  
-  - Identifies **Golden Cross** (Bullish) and **Death Cross** (Bearish).  
+  - Identifies **Golden Cross** (Bullish) and **Death Cross** (Bearish).
+    
+  - #### 🔥 How This Improves Decision Making
+
+| **EMA Crossover**                    | **BUY Alert**                    | **SELL Alert**                    | **Why It Matters**                    |
+|---------------------------------------|----------------------------------|----------------------------------|--------------------------------------|
+| **EMA100/EMA200** (Golden/Death Cross) | *EMA100 crossed above EMA200*   | *EMA100 crossed below EMA200*   | **Strong long-term trend change**  |
+| **EMA50/EMA100**                      | *EMA50 crossed above EMA100*    | *EMA50 crossed below EMA100*    | **Medium-term trend confirmation** |
+| **EMA21/EMA50**                        | *EMA21 crossed above EMA50*     | *EMA21 crossed below EMA50*     | **Early medium-term trend shift**  |
+| **EMA7/EMA21**                         | *EMA7 crossed above EMA21*      | *EMA7 crossed below EMA21*      | **Short-term momentum change**     |
+
+
 - **Relative Strength Index (RSI)**
   - RSI-based alerts for momentum-based trades
   - Alerts when **RSI is oversold (<30) → Buy Signal**.  
