@@ -1,76 +1,81 @@
 
-## 📌 How This Works
+# 📊 Crypto Monitoring & Alert Bot 🚀  
 
-- It sends alerts based on EMA crossovers, RSI insights, and support/resistance levels, 
-ensuring strong entry/exit points while preventing false breakouts.
--   Sends alerts to Telegram
-    - Prevents spam by only sending alerts when conditions change  
-    - Uses Markdown in Telegram for better readability
+## Overview  
+This Python script integrates **Binance API** and **Telegram** to monitor cryptocurrency prices, detect trading signals, and send real-time alerts with price charts. 
 
-      Telegram message examples:
-      ><a href="https://ibb.co/YFT9QX77"><img src="https://i.ibb.co/sdJSRCvv/SCR-20250212-mlep.png" alt="SCR-20250212-mlep" border="0"></a>
--   Uses Binance WebSockets for real-time updates. Its public API allows users to access market data, such as price and trading volume, WITHOUT any cost
--   Runs continuously, checking the market every 15 minutes 
+It helps traders identify **EMA crossovers, RSI signals, and trend strength** to make informed trading decisions.  
 
-## 📌 Requirements
+## 🔥 Features  
 
-1.	Create a Binance API Key https://www.binance.com/en/my/settings/api-management
-2.  To create a bot token 
+### ✅ **Technical Indicators & Trend Analysis**
+- **Exponential Moving Averages (EMA)**  
+  - Detects key **EMA crossovers** (7, 21, 50, 100, 200).  
+  - Identifies **Golden Cross** (Bullish) and **Death Cross** (Bearish).  
+- **Relative Strength Index (RSI)**
+  - Alerts when **RSI is oversold (<30) → Buy Signal**.  
+  - Alerts when **RSI is overbought (>70) → Sell Signal**.  
+- **Average Directional Index (ADX)**
+  - Determines if a trend is **strong (ADX > 25)** or **weak/ranging (ADX < 20)**.  
+- **Support & Resistance Detection**
+  - Detects **price near support (Buy Zone) or resistance (Sell Zone)**.  
+
+### 📡 **Real-Time Alerts via Telegram**
+- Sends **clear and meaningful** alerts in **Markdown format**.  
+- Prevents **spam** by sending alerts only when conditions change.  
+- Includes **price chart images** for better visualization.  
+
+### ⚡ **Reliable Execution & Async Handling**
+- Handles **async Telegram alerts** to avoid `asyncio` issues.  
+- Uses **error handling** to prevent failures when sending messages.  
+- Monitors multiple cryptocurrencies simultaneously.  
+
+## 🚀 How It Works  
+1. Fetches **live price data** from Binance API every 15 minutes.  
+2. Computes **technical indicators (EMA, RSI, ADX, Support/Resistance)**.  
+3. Detects **buy/sell signals** based on indicator crossovers & trend confirmation.  
+4. Sends **real-time alerts to Telegram** with price charts.  
+
+## 📂 **Setup Instructions**  
+1. Install dependencies:  
+   ```bash
+   pip install requests pandas numpy matplotlib python-telegram-bot
+2.  To create a Telegram bot token
     - Open the Telegram app
     - Search for "@BotFather"
     - Start a chat with BotFather
     - Type /newbot
     - Follow the instructions to name and username your bot
     - BotFather will send you a unique API token
-3. To create a chat ID 
+3. To create a chat ID
     - Create a new chat group
     - Add your bot to the group
     - Go to Telegram Web and log in to your account
     - Select the group chat
     - The chat ID (numbers/digits) is in the URL in the address bar
-4. Install the required Python libraries:
-```
-pip install requests websocket-client pandas numpy python-telegram-bot python-binance
-```
+4.  Set up Binance API & Telegram Bot in `settings.py`
+   ```python
+# settings.py
 
+# 🔹 Telegram Bot Configuration
+TELEGRAM_BOT_TOKEN = "your_bot_token"  # Replace with your Telegram Bot Token
+TELEGRAM_CHAT_ID = "your_chat_id"  # Replace with your Telegram Chat ID
 
-## 📌 How to Run the Bots
+# 🔹 List of Cryptos to Monitor
+SYMBOLS = ["BTCUSDT", "ETHUSDT", "BNBUSDT"]  # Add more symbols
+```
+	
 
-##### 1. Replace API Keys in settings.py:
+5. **Run the BOT**
+Once everything is set up, run the script using:
 
-- 	Add your Binance API keys (api_key, api_secret)
-- 	Add your Telegram Bot Token and Chat ID
-```
-# ----------------------------------------------
-# Binance API Configuration (Public API)
-BINANCE_API_KEY = ""  
-BINANCE_SECRET_KEY = ""
-# ----------------------------------------------
-# Telegram Configuration
-TELEGRAM_BOT_TOKEN = ""
-TELEGRAM_CHAT_ID = "1234567899"  # example
-```
-##### 2. Replace crypto-pair in settings.py:
-```
-SYMBOLS = ["BTCUSDT", "XRPUSDT", "WLDUSDT", "ETHUSDT"]
-```
-
-##### 3. Run the Script:
-```
+```bash
 python crypto_alert_bot.py
 ```
-<a href="https://ibb.co/96qHnMM"><img src="https://i.ibb.co/Dh7f4qq/SCR-20250212-mfwo.png" alt="SCR-20250212-mfwo" border="0"></a>
 
-<a href="https://ibb.co/Tx4JhjZM"><img src="https://i.ibb.co/wFS86GTh/SCR-20250212-mrjg.png" alt="SCR-20250212-mrjg" border="0"></a>
+📌 Example Telegram Alert:
 
-<a href="https://ibb.co/GfTGf5hG"><img src="https://i.ibb.co/BHNvHC1v/SCR-20250212-navp.png" alt="SCR-20250212-navp" border="0"></a>
-
-That's it!
-
-## ⚠️*TIP* ##
-- Added "- Price near Support ✅" or " - RSI is overbought (strong sell) ⚠️" messages in the Telegram alerts
-	- Confirm buy/sell signals with support/resistance levels
- 	- Prevent false breakouts by checking RSI
+<a href="https://ibb.co/SXvpH4kM"><img src="https://i.ibb.co/wN618FnP/SCR-20250213-tpon.png" alt="SCR-20250213-tpon" border="0"></a>
 
 ## 📌 How to Run the backtest script
 
