@@ -211,7 +211,7 @@ Examples:
 
 	✅ Support/Resistance Breakout Detection – Alert when price breaks past key levels instead of just touching them.
 
-	✅ Whale Activity Alert – Detect unusual buy/sell volume spikes indicating large trader moves.
+	✅ Whale Activity Alert – Detect unusual buy/sell volume spikes indicating large trader moves. (Done)
 
 	✅ Market Sentiment Check – Integrate data from sources like Binance funding rates to gauge trader sentiment.
 
