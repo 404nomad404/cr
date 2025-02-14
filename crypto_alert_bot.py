@@ -93,36 +93,7 @@ def detect_trend(df):
     return trend
 
 
-# Generate price chart with EMA crossovers
-def generate_price_chart2(df, symbol):
-    plt.figure(figsize=(8, 4))  # Increase figure size for better visibility
-
-    # Plot price and EMAs
-    plt.plot(df.index[-100:], df["close"].tail(100), label="Price", color="blue", linewidth=2)
-    plt.plot(df.index[-100:], df["EMA21"].tail(100), label="EMA21", color="green", linestyle="dashed")
-    plt.plot(df.index[-100:], df["EMA50"].tail(100), label="EMA50", color="orange", linestyle="dashed")
-    plt.plot(df.index[-100:], df["EMA100"].tail(100), label="EMA100", color="red", linestyle="dashed")
-    plt.plot(df.index[-100:], df["EMA200"].tail(100), label="EMA200", color="purple", linestyle="dashed")
-
-    plt.title(f"{symbol} Price & EMA Crossovers")
-    plt.xlabel("Time")
-    plt.ylabel("Price (USDT)")
-    plt.grid(True)
-    plt.legend()
-
-    # Format x-axis for better readability
-    plt.xticks(rotation=45)  # Rotate labels
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))  # Format as "MM-DD HH:MM"
-    plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())  # Auto-adjust ticks
-
-    # Save chart to a BytesIO object
-    img = io.BytesIO()
-    plt.savefig(img, format="png", bbox_inches="tight", dpi=200)  # Increase DPI for better quality
-    img.seek(0)
-    plt.close()
-    return img
-
-
+# Generate price chart with EMA crossovers with RSI & ADX
 def generate_price_chart(df, symbol):
     fig, ax = plt.subplots(3, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1, 1]})
 
