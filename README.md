@@ -126,7 +126,7 @@ python crypto_alert_bot.py
 
    <a href="https://ibb.co/ns3gX1LJ"><img src="https://i.ibb.co/SXQskm3C/SCR-20250214-ulzy.png" alt="SCR-20250214-ulzy" border="0"></a>
 
-   If the 3 amigos are aligned in the heavens, confirm buy 🚀
+   💡 Tip: If the 3 amigos are aligned in the heavens, confirm buy 🚀
 
    	- EMA 21, 50 crosses
 	- RSI < 30
