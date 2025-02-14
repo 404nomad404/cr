@@ -126,7 +126,14 @@ python crypto_alert_bot.py
 
    <a href="https://ibb.co/jZzRyJRw"><img src="https://i.ibb.co/G39TWHTM/SCR-20250214-spfg.png" alt="SCR-20250214-spfg" border="0"></a>
 
+   If the 3 amigos are aligned in the heavens, confirm buy 🚀
+
+   	- EMA 21, 50 crosses
+	- RSI < 30
+	- ADX >25
+      
    View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a>
+   
 
 
 ## 📌 How to Run the backtest script
