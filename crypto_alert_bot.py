@@ -138,10 +138,12 @@ def detect_signals(df):
     latest = df.iloc[-1]
     previous = df.iloc[-2]
     status = "HOLD"
+    ema_cross_flag = False
     signals = []
 
     # EMA100 & EMA200 (Golden/Death Cross)
     if latest["EMA100"] > latest["EMA200"] and previous["EMA100"] <= previous["EMA200"]:
+        ema_cross_flag = True
         signals.append(
             "✅ *EMA100 crossed above EMA200* - Buy (Golden Cross)\n🔥 This is a long-term bullish signal, suggesting strong momentum!")
         status = "BUY"
@@ -151,6 +153,7 @@ def detect_signals(df):
 
     # EMA50 & EMA100
     if latest["EMA50"] > latest["EMA100"] and previous["EMA50"] <= previous["EMA100"]:
+        ema_cross_flag = True
         signals.append("✅ *EMA50 crossed above EMA100* - Buy")
         status = "BUY"
     if latest["EMA50"] < latest["EMA100"] and previous["EMA50"] >= previous["EMA100"]:
@@ -159,6 +162,7 @@ def detect_signals(df):
 
     # EMA21 & EMA50
     if latest["EMA21"] > latest["EMA50"] and previous["EMA21"] <= previous["EMA50"]:
+        ema_cross_flag = True
         signals.append("✅ *EMA21 crossed above EMA50* - Buy")
         status = "BUY"
     if latest["EMA21"] < latest["EMA50"] and previous["EMA21"] >= previous["EMA50"]:
@@ -167,6 +171,7 @@ def detect_signals(df):
 
     # EMA7 & EMA21
     if latest["EMA7"] > latest["EMA21"] and previous["EMA7"] <= previous["EMA21"]:
+        ema_cross_flag = True
         signals.append("✅ *EMA7 crossed above EMA21* - Short-term Buy Signal")
         status = "BUY"
     if latest["EMA7"] < latest["EMA21"] and previous["EMA7"] >= previous["EMA21"]:
@@ -200,8 +205,11 @@ def detect_signals(df):
             "⚠️ *ADX<20 - No Clear Trend - Market Ranging - Trade with Caution*\n⚠️ Ignore the buy signal")
 
     # Final bias
-    if trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY":
+
+    if trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY" and ema_cross_flag is True:
         signals.append("📉 *Overall bias: 🔥 CONFIRM BUY! 🔥*")
+    elif trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY":
+        signals.append("📉 *Overall bias: 🔥 BUY 🥶*")
     elif trend == "Strong Downtrend" and latest["RSI"] > 70 and status == "SELL":
         signals.append("📉 *Overall bias: ❌ CONFIRM SELL! 🔥*")
     else:
