@@ -198,18 +198,29 @@ Examples:
 
 2. **Additional Market Insights**
 
-	✅ Volume Analysis – Identify spikes in buying/selling volume to confirm trend strength.
+	✅ Volume Analysis – Identify spikes in buying/selling volume to confirm trend strength. (Done)
+
+		Compute Volume Moving Average (20-period)
+			•	EMA7 & EMA21 → Confirms short-term momentum shifts.
+			•	EMA21 & EMA50 → Mid-term confirmation of trend changes.
+			•	Volume Surge → Ensures crossovers are not false signals.
 
 	✅ Volatility Indicator – Show if the market is trending or ranging to avoid fakeouts.
 
 	✅ MACD Indicator – Add another confirmation layer to trend shifts.
 
 
-3. **Improved Alerts & Decision Support**
+4. **Improved Alerts & Decision Support**
 
 	✅ Risk/Reward Estimation – Suggest optimal entry price, stop-loss, and take-profit levels.
 
-	✅ Support/Resistance Breakout Detection – Alert when price breaks past key levels instead of just touching them.
+	✅ Support/Resistance Breakout Detection – Alert when price breaks past key levels instead of just touching them. (Done)
+
+		Why is Breakout Detection Important?
+
+			1.	Prevents False Signals – Many times, the price tests a support/resistance level but reverses quickly. A proper breakout confirmation helps you avoid fakeouts.
+			2.	Stronger Trend Confirmation – When price breaks a key level with volume and momentum, it often signals a strong trend continuation or reversal.
+			3.	Better Trade Timing – Waiting for a confirmed breakout can help enter trades at the right time instead of getting caught in a range.
 
 	✅ Whale Activity Alert – Detect unusual buy/sell volume spikes indicating large trader moves. (Done)
 
@@ -217,7 +228,7 @@ Examples:
 
 
 
-4. User Customization
+5. User Customization
 
 	✅ Adjustable Thresholds – Allow you to tweak RSI, EMA crossovers, and risk levels dynamically.
 
