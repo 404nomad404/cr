@@ -182,10 +182,10 @@ def detect_signals(df):
     df["Resistance"] = df["close"].rolling(20).max()
 
     trend = detect_trend(df)
-    latest = df.iloc[-1]
-    previous = df.iloc[-2]
-    status = "HOLD"
-    ema_cross_flag = False
+    latest = df.iloc[-1]  # Latest candle data
+    previous = df.iloc[-2]  # Previous candle data for crossover confirmation
+    status = "HOLD"  # Default status if no strong buy/sell signal is found
+    ema_cross_flag = False  # Default boolean if no EMA crosses occur
     signals = []
 
     # EMA100 & EMA200 (Golden/Death Cross)
