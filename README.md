@@ -17,6 +17,7 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 - **Exponential Moving Averages (EMA)**  
   - Detects key **EMA crossovers** (7, 21, 50, 100, 200).  
   - Identifies **Golden Cross** (Bullish) and **Death Cross** (Bearish).
+  - Filters EMA cross signals with RSI (trend strength) and ADX (momentum)
     
   - #### 🔥 How This Improves Decision Making
 
@@ -31,7 +32,8 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 - **Relative Strength Index (RSI)**
   - RSI-based alerts for momentum-based trades
   - Alerts when **RSI is oversold (<30) → Buy Signal**.  
-  - Alerts when **RSI is overbought (>70) → Sell Signal**.  
+  - Alerts when **RSI is overbought (>70) → Sell Signal**.
+  - Adjusts RSI buy/sell levels dynamically based on trend conditions
 - **Average Directional Index (ADX)**
   - Implements ADX (Average Directional Index) to confirm trend strength.
   - Adding trend detection can help you:
@@ -49,6 +51,15 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
     
   <a href="https://ibb.co/Xf2GggtK"><img src="https://i.ibb.co/dsWHqqDV/SCR-20250211-rfkg.png" alt="SCR-20250211-rfkg" border="0"></a>
 
+- **Volume-Based Signal Validation**
+  - Confirms breakouts using moving average of volume.
+  - Compute Volume Moving Average (20-period)
+    
+	•	EMA7 & EMA21 → Confirms short-term momentum shifts.
+
+	•	EMA21 & EMA50 → Mid-term confirmation of trend changes.
+
+	•	Volume Surge → Ensures crossovers are not false signals.
  
 ### 📡 **Automated Real-Time Alerts via Telegram**
 - Sends **clear and meaningful** alerts in **Markdown format**.  
