@@ -212,7 +212,13 @@ Examples:
 
 4. **Improved Alerts & Decision Support**
 
-	✅ Risk/Reward Estimation – Suggest optimal entry price, stop-loss, and take-profit levels.
+	✅ Risk/Reward Estimation – Suggest optimal entry price, stop-loss, and take-profit levels. (*KIV*)
+
+		Issues:
+   			1. If there are no EMA crossovers, ATR-based stop-loss/take-profit might not be triggered
+			2. If the price is too far from past signals, they get discarded
+   			3. Entry Price is Too Different from Current Price
+   			4. Some signals might not have valid ATR-based stop-loss/take-profit calculations, causing them to be ignored.
 
 	✅ Support/Resistance Breakout Detection – Alert when price breaks past key levels instead of just touching them. (Done)
 
@@ -224,11 +230,14 @@ Examples:
 
 	✅ Whale Activity Alert – Detect unusual buy/sell volume spikes indicating large trader moves. (Done)
 
+		- Whales buy before big rallies & sell before crashes. Detecting their activity gives you a head start on potential price swings.
+		- Low-volume breakouts are often fakeouts—whales may trap retail traders before dumping
+
 	✅ Market Sentiment Check – Integrate data from sources like Binance funding rates to gauge trader sentiment.
 
 
 
-5. User Customization
+6. User Customization
 
 	✅ Adjustable Thresholds – Allow you to tweak RSI, EMA crossovers, and risk levels dynamically.
 
