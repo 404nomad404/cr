@@ -15,6 +15,8 @@ import asyncio
 import telegram
 import logging
 import settings
+import matplotlib.pyplot as plt
+import io
 
 # Telegram Bot API setup
 TELEGRAM_BOT_TOKEN = settings.TELEGRAM_BOT_TOKEN
@@ -88,6 +90,31 @@ def detect_trend(df):
         trend = "Weak Trend / Ranging"
 
     return trend
+
+
+# Generate price chart with EMA crossovers
+def generate_price_chart(df, symbol):
+    plt.figure(figsize=(6, 3))
+
+    # Plot price and EMAs
+    plt.plot(df.index[-50:], df["close"].tail(50), label="Price", color="blue", linewidth=2)
+    plt.plot(df.index[-50:], df["EMA21"].tail(50), label="EMA21", color="green", linestyle="dashed")
+    plt.plot(df.index[-50:], df["EMA50"].tail(50), label="EMA50", color="orange", linestyle="dashed")
+    plt.plot(df.index[-50:], df["EMA100"].tail(50), label="EMA100", color="red", linestyle="dashed")
+    plt.plot(df.index[-50:], df["EMA200"].tail(50), label="EMA200", color="purple", linestyle="dashed")
+
+    plt.title(f"{symbol} Price & EMA Crossovers")
+    plt.xlabel("Time")
+    plt.ylabel("Price (USDT)")
+    plt.grid(True)
+    plt.legend()
+
+    # Save chart to a BytesIO object
+    img = io.BytesIO()
+    plt.savefig(img, format="png", bbox_inches="tight")
+    img.seek(0)
+    plt.close()
+    return img
 
 
 # Identify Buy/Sell Signals
@@ -168,19 +195,28 @@ def detect_signals(df):
 
 
 # Send Telegram Alert (Fix for asyncio issues)
-async def send_telegram_alert(message):
+async def send_telegram_alert2(message):
     try:
         await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message, parse_mode="Markdown")
     except Exception as e:
         logging.error(f"Failed to send Telegram message: {e}")
 
 
-def send_alert_sync(message):
+# Send Telegram alert with chart
+async def send_telegram_alert_with_chart(message, df, symbol):
+    try:
+        img = generate_price_chart(df, symbol)
+        await bot.send_photo(chat_id=TELEGRAM_CHAT_ID, photo=img, caption=message, parse_mode="Markdown")
+    except Exception as e:
+        logging.error(f"Failed to send Telegram message with chart: {e}")
+
+
+def send_alert_sync_with_chart(message, df, symbol):
     loop = asyncio.get_event_loop()
     if loop.is_closed():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-    loop.run_until_complete(send_telegram_alert(message))
+    loop.run_until_complete(send_telegram_alert_with_chart(message, df, symbol))
 
 
 # Main function to monitor cryptos
@@ -196,7 +232,8 @@ def monitor_crypto(symbols):
                 # message = f"📊 *Crypto Alert for {symbol}* \n{signals}\n💰 *Current Price:* {price:.2f} USDT"
                 formatted_symbol = f"{symbol[:-4]}/{symbol[-4:]}"  # BTCUSDT -> BTC/USDT
                 message = f"📊 *Crypto Alert for {formatted_symbol}*\n💰 *Current Price:* {price:.2f} USDT\n{signals}"
-                send_alert_sync(message)
+                # send_alert_sync(message)
+                send_alert_sync_with_chart(message, df, symbol)
                 last_alerts[symbol] = signals
 
         time.sleep(900)  # Check every 15 minutes
