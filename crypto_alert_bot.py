@@ -4,7 +4,7 @@ __date__ = "14 Feb 2025"
 """
 This Python script integrates Binance’s public API with Telegram to monitor cryptocurrency price movements 
 and send meaningful alerts. It utilizes technical indicators such as EMA crossovers, RSI levels, 
-ADX trend strength, volume, and support/resistance detection to identify potential trade opportunities 
+ADX trend strength, volume and support/resistance detection to identify potential trade opportunities 
 while reducing false signals.
 """
 import requests
@@ -93,7 +93,36 @@ def detect_trend(df):
     return trend
 
 
-# Generate price chart with EMA crossovers with RSI & ADX
+# Generate price chart with EMA crossovers
+def generate_price_chart2(df, symbol):
+    plt.figure(figsize=(8, 4))  # Increase figure size for better visibility
+
+    # Plot price and EMAs
+    plt.plot(df.index[-100:], df["close"].tail(100), label="Price", color="blue", linewidth=2)
+    plt.plot(df.index[-100:], df["EMA21"].tail(100), label="EMA21", color="green", linestyle="dashed")
+    plt.plot(df.index[-100:], df["EMA50"].tail(100), label="EMA50", color="orange", linestyle="dashed")
+    plt.plot(df.index[-100:], df["EMA100"].tail(100), label="EMA100", color="red", linestyle="dashed")
+    plt.plot(df.index[-100:], df["EMA200"].tail(100), label="EMA200", color="purple", linestyle="dashed")
+
+    plt.title(f"{symbol} Price & EMA Crossovers")
+    plt.xlabel("Time")
+    plt.ylabel("Price (USDT)")
+    plt.grid(True)
+    plt.legend()
+
+    # Format x-axis for better readability
+    plt.xticks(rotation=45)  # Rotate labels
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))  # Format as "MM-DD HH:MM"
+    plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())  # Auto-adjust ticks
+
+    # Save chart to a BytesIO object
+    img = io.BytesIO()
+    plt.savefig(img, format="png", bbox_inches="tight", dpi=200)  # Increase DPI for better quality
+    img.seek(0)
+    plt.close()
+    return img
+
+
 def generate_price_chart(df, symbol):
     fig, ax = plt.subplots(3, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1, 1]})
 
@@ -158,6 +187,25 @@ def detect_signals(df):
     status = "HOLD"  # Default status if no strong buy/sell signal is found
     ema_cross_flag = False  # Default boolean if no EMA crosses occur
     signals = []
+
+    """
+    Compute Volume Moving Average (20-period)
+	•	EMA7 & EMA21 → Confirms short-term momentum shifts.
+	•	EMA21 & EMA50 → Mid-term confirmation of trend changes.
+	•	Volume Surge → Ensures crossovers are not false signals.
+    """
+    df["Volume_MA"] = df["volume"].rolling(window=20).mean()
+    # EMA7 > EMA21 + High Volume (Short-term Buy Confirmation)
+    # EMA21 > EMA50 + High Volume (Mid-term Buy Confirmation)
+    if latest["EMA21"] > latest["EMA50"] and previous["EMA21"] <= previous["EMA50"] and latest["volume"] > latest[
+        "Volume_MA"]:
+        signals.append("📈 *EMA21 crossed above EMA50 with High Volume → 🔥 Stronger Bullish Confirmation!*")
+        status = "BUY"
+        # EMA21 < EMA50 + High Volume (Mid-term Sell Confirmation)
+    if latest["EMA21"] < latest["EMA50"] and previous["EMA21"] >= previous["EMA50"] and latest["volume"] > latest[
+        "Volume_MA"]:
+        signals.append("📉 *EMA21 crossed below EMA50 with High Volume → ❌ Stronger Bearish Confirmation!*")
+        status = "SELL"
 
     # EMA100 & EMA200 (Golden/Death Cross)
     if latest["EMA100"] > latest["EMA200"] and previous["EMA100"] <= previous["EMA200"]:
