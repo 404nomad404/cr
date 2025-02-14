@@ -264,17 +264,19 @@ def detect_signals(df):
         signals.append(f"🔴 *RSI > {rsi_sell_threshold} → Sell Signal*")
         status = "SELL"
     if latest["RSI"] < rsi_buy_threshold:
-        signals.append(f"🟢 *RSI < {rsi_buy_threshold} → Buy Signal*\n📢 *Buyers could step in soon, but wait for confirmation!*")
+        signals.append(
+            f"🟢 *RSI < {rsi_buy_threshold} → Buy Signal*\n📢 *Buyers could step in soon, but wait for confirmation!*")
         status = "BUY"
 
-    # Final bias
-    if trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY" and ema_cross_flag is True:
+    # Final bias. Adjusted for dynamic RSI
+    if trend == "Strong Uptrend" and latest["RSI"] < rsi_buy_threshold and status == "BUY" and ema_cross_flag is True:
         signals.append("🎯 *Overall bias: 🔥 CONFIRM BUY! 🔥*")
-    elif trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY":  # but EMAs didn't cross
+    elif trend == "Strong Uptrend" and latest["RSI"] < rsi_buy_threshold and status == "BUY":  # but EMAs didn't cross
         signals.append("🎯 *Overall bias: 🔥 BUY 🥶*")
-    elif trend == "Strong Downtrend" and latest["RSI"] > 70 and status == "SELL" and ema_cross_flag is True:
+    elif trend == "Strong Downtrend" and latest[
+        "RSI"] > rsi_sell_threshold and status == "SELL" and ema_cross_flag is True:
         signals.append("🎯 *Overall bias: ❌ CONFIRM SELL! 🔥*")
-    elif trend == "Strong Downtrend" and latest["RSI"] > 70 and status == "SELL":  # EMAs didn't cross
+    elif trend == "Strong Downtrend" and latest["RSI"] > rsi_sell_threshold and status == "SELL":  # EMAs didn't cross
         signals.append("🎯 *Overall bias: ❌ SELL 🔥🥶*")
     else:
         # signals.append("🎯 *Overall bias: 🥶 %s, better to wait for other confirmations*" % status)
