@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Ishafizan'
-__date__ = "13 Feb 2025"
+__date__ = "14 Feb 2025"
 """
 This Python script integrates Binance’s public API with Telegram to monitor cryptocurrency price movements 
 and send meaningful alerts. It utilizes technical indicators such as EMA crossovers, RSI levels, 
-ADX trend strength, and support/resistance detection to identify potential trade opportunities 
+ADX trend strength, volume, and support/resistance detection to identify potential trade opportunities 
 while reducing false signals.
 """
 import requests
@@ -42,7 +42,7 @@ def fetch_binance_data(symbol, interval="1d", limit=500):
     df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
     df["close"] = df["close"].astype(float)
     df.set_index("timestamp", inplace=True)
-    return df[["close"]]
+    return df[["close", "volume"]]
 
 
 # Calculate EMAs
@@ -245,15 +245,6 @@ def detect_signals(df):
         signals.append("🔴 *Price Near Resistance* → Potential selling pressure ahead!")
         status = "SELL"
 
-    # RSI Conditions
-    if latest["RSI"] < 30:
-        signals.append(
-            "🟢 *RSI < 30 → Oversold* - Strong Buy\n📢 *Buyers could step in soon, but wait for confirmation!*")
-        status = "BUY"
-    if latest["RSI"] > 70:
-        signals.append("🔴 *RSI > 70 → Overbought* - Strong Sell")
-        status = "SELL"
-
     # Trend detection
     if trend == "Strong Uptrend":
         signals.append("📈 *ADX > 25 (Strong Uptrend) Uptrend Confirmed*")
@@ -262,6 +253,19 @@ def detect_signals(df):
     elif trend == "Weak Trend / Ranging":
         signals.append(
             "⚠️ *ADX<20 - No Clear Trend - Market Ranging - Trade with Caution*\n⚠️ Ignore the buy signal")
+
+    # Dynamic RSI Thresholds
+    # Adjusts RSI buy/sell levels dynamically based on trend conditions
+    rsi_buy_threshold = 40 if trend == "Strong Uptrend" else 30
+    rsi_sell_threshold = 60 if trend == "Strong Downtrend" else 70
+
+    # RSI Conditions
+    if latest["RSI"] > rsi_sell_threshold:
+        signals.append(f"🔴 *RSI > {rsi_sell_threshold} → Sell Signal*")
+        status = "SELL"
+    if latest["RSI"] < rsi_buy_threshold:
+        signals.append(f"🟢 *RSI > {rsi_buy_threshold} → Buy Signal*\n📢 *Buyers could step in soon, but wait for confirmation!*")
+        status = "BUY"
 
     # Final bias
     if trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY" and ema_cross_flag is True:
