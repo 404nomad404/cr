@@ -113,7 +113,7 @@ python crypto_alert_bot.py
 
 	✅ Helps visualize price movement before making decisions.
 
-   <a href="https://ibb.co/SXvpH4kM"><img src="https://i.ibb.co/wN618FnP/SCR-20250213-tpon.png" alt="SCR-20250213-tpon" border="0"></a>
+   <a href="https://ibb.co/1tHxm4dV"><img src="https://i.ibb.co/Txz5gNbX/SCR-20250214-jpbj.png" alt="SCR-20250214-jpbj" border="0"></a>
 
 
 ## 📌 How to Run the backtest script
