@@ -195,7 +195,7 @@ def detect_signals(df):
 	•	Volume Surge → Ensures crossovers are not false signals.
     """
     df["Volume_MA"] = df["volume"].rolling(window=20).mean()
-    # EMA7 > EMA21 + High Volume (Short-term Buy Confirmation)
+    
     # EMA21 > EMA50 + High Volume (Mid-term Buy Confirmation)
     if latest["EMA21"] > latest["EMA50"] and previous["EMA21"] <= previous["EMA50"] and latest["volume"] > latest[
         "Volume_MA"]:
