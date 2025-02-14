@@ -124,7 +124,7 @@ python crypto_alert_bot.py
 
 	✅ Helps visualize price movement before making decisions.
 
-   <a href="https://ibb.co/jZzRyJRw"><img src="https://i.ibb.co/G39TWHTM/SCR-20250214-spfg.png" alt="SCR-20250214-spfg" border="0"></a>
+   <a href="https://ibb.co/YBJdyszH"><img src="https://i.ibb.co/8gGxdZW1/SCR-20250214-ukpo.png" alt="SCR-20250214-ukpo" border="0"></a>
 
    If the 3 amigos are aligned in the heavens, confirm buy 🚀
 
@@ -240,7 +240,7 @@ Examples:
 		- Whales buy before big rallies & sell before crashes. Detecting their activity gives you a head start on potential price swings.
 		- Low-volume breakouts are often fakeouts—whales may trap retail traders before dumping
 
-	✅ Market Sentiment Check – Integrate data from sources like Binance funding rates to gauge trader sentiment.
+	✅ Market Sentiment Check – Integrate data from sources like Binance funding rates to gauge trader sentiment. (Done)
 
 		1. Improve Buy/Sell Timing
    			- If RSI is oversold but funding rates remain negative, the downtrend might continue.
