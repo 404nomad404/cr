@@ -3,10 +3,6 @@
 __author__ = 'Ishafizan'
 __date__: "12 Feb 2025"
 
-"""
-https://github.com/ishafizan/CRYPTO-BUY-SELL-HOLD-SIGNALS-AND-ALERTS/blob/main/README.md
-"""
-
 # ----------------------------------------------
 # Binance API Configuration (Public API)
 BINANCE_API_KEY = ""  # No need for a private key since we're only reading market data
