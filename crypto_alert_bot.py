@@ -142,10 +142,11 @@ def detect_signals(df):
 
     # EMA100 & EMA200 (Golden/Death Cross)
     if latest["EMA100"] > latest["EMA200"] and previous["EMA100"] <= previous["EMA200"]:
-        signals.append("✅ *EMA100 crossed above EMA200* - Buy (Golden Cross)")
+        signals.append(
+            "✅ *EMA100 crossed above EMA200* - Buy (Golden Cross)\n🔥 This is a long-term bullish signal, suggesting strong momentum!")
         status = "BUY"
     if latest["EMA100"] < latest["EMA200"] and previous["EMA100"] >= previous["EMA200"]:
-        signals.append("❌ *EMA100 crossed below EMA200* - Sell (Death Cross)")
+        signals.append("❌ *EMA100 crossed below EMA200* - Sell (Death Cross)\n	🚨 A bearish trend is forming")
         status = "SELL"
 
     # EMA50 & EMA100
@@ -166,10 +167,10 @@ def detect_signals(df):
 
     # EMA7 & EMA21
     if latest["EMA7"] > latest["EMA21"] and previous["EMA7"] <= previous["EMA21"]:
-        signals.append("✅ *EMA7 crossed above EMA21* - Buy")
+        signals.append("✅ *EMA7 crossed above EMA21* - Short-term Buy Signal")
         status = "BUY"
     if latest["EMA7"] < latest["EMA21"] and previous["EMA7"] >= previous["EMA21"]:
-        signals.append("❌ *EMA7 crossed below EMA21* - Sell")
+        signals.append("❌ *EMA7 crossed below EMA21* - Short-term Sell Signal")
         status = "SELL"
 
     # Price Near Support/Resistance
@@ -177,30 +178,39 @@ def detect_signals(df):
         signals.append("🔵 *Price Near Support* - Buying Opportunity")
         status = "BUY"
     if latest["close"] >= latest["Resistance"] * 0.98:
-        signals.append("🔴 *Price Near Resistance* - Selling Opportunity")
+        signals.append("🔴 *Price Near Resistance* → Potential selling pressure ahead!")
         status = "SELL"
 
     # RSI Conditions
     if latest["RSI"] < 30:
-        signals.append("🟢 *RSI Oversold* - Strong Buy")
+        signals.append(
+            "🟢 *RSI < 30 → Oversold* - Strong Buy\n📢 *Buyers could step in soon, but wait for confirmation!*")
         status = "BUY"
     if latest["RSI"] > 70:
-        signals.append("🔴 *RSI Overbought* - Strong Sell")
+        signals.append("🔴 *RSI > 70 → Overbought* - Strong Sell")
         status = "SELL"
 
     # Trend detection
     if trend == "Strong Uptrend":
-        signals.append("📈 *ADX > 25 (Strong Trend) Uptrend Confirmed\n🔥 CONFIRM BUY! 🔥*")
+        signals.append("📈 *ADX > 25 (Strong Trend) Uptrend Confirmed*")
     elif trend == "Strong Downtrend":
         signals.append("📉 *Downtrend Confirmed - Favoring Sells*")
     elif trend == "Weak Trend / Ranging":
         signals.append(
             "⚠️ *ADX<20 - No Clear Trend - Market Ranging - Trade with Caution*\n⚠️ Ignore the buy signal")
 
+    # Final bias
+    if trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY":
+        signals.append("📉 *Overall bias: 🔥 CONFIRM BUY! 🔥*")
+    elif trend == "Strong Downtrend" and latest["RSI"] > 70 and status == "SELL":
+        signals.append("📉 *Overall bias: ❌ CONFIRM SELL! 🔥*")
+    else:
+        signals.append("📉 *Overall bias: 🥶 %s, better to wait for other confirmations*" % status)
+
     return status, latest["close"], "\n".join(signals).strip()
 
 
-# Send Telegram Alert (Fix for asyncio issues) withhout chart
+# Send Telegram Alert (Fix for asyncio issues)
 async def send_telegram_alert2(message):
     try:
         await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message, parse_mode="Markdown")
