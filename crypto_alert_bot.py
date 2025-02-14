@@ -94,7 +94,7 @@ def detect_trend(df):
 
 
 # Generate price chart with EMA crossovers
-def generate_price_chart(df, symbol):
+def generate_price_chart2(df, symbol):
     plt.figure(figsize=(8, 4))  # Increase figure size for better visibility
 
     # Plot price and EMAs
@@ -118,6 +118,53 @@ def generate_price_chart(df, symbol):
     # Save chart to a BytesIO object
     img = io.BytesIO()
     plt.savefig(img, format="png", bbox_inches="tight", dpi=200)  # Increase DPI for better quality
+    img.seek(0)
+    plt.close()
+    return img
+
+
+def generate_price_chart(df, symbol):
+    fig, ax = plt.subplots(3, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1, 1]})
+
+    # Price & EMA Crossovers
+    ax[0].plot(df.index[-100:], df["close"].tail(100), label="Price", color="blue", linewidth=2)
+    ax[0].plot(df.index[-100:], df["EMA21"].tail(100), label="EMA21", color="green", linestyle="dashed")
+    ax[0].plot(df.index[-100:], df["EMA50"].tail(100), label="EMA50", color="orange", linestyle="dashed")
+    ax[0].plot(df.index[-100:], df["EMA100"].tail(100), label="EMA100", color="red", linestyle="dashed")
+    ax[0].plot(df.index[-100:], df["EMA200"].tail(100), label="EMA200", color="purple", linestyle="dashed")
+
+    ax[0].set_title(f"{symbol} Price & EMA Crossovers")
+    ax[0].set_ylabel("Price (USDT)")
+    ax[0].grid(True)
+    ax[0].legend()
+
+    # RSI Plot
+    ax[1].plot(df.index[-100:], df["RSI"].tail(100), label="RSI", color="purple")
+    ax[1].axhline(70, linestyle="dashed", color="red", alpha=0.5, label="Overbought (70)")
+    ax[1].axhline(30, linestyle="dashed", color="green", alpha=0.5, label="Oversold (30)")
+    ax[1].set_title("Relative Strength Index (RSI)")
+    ax[1].set_ylabel("RSI")
+    ax[1].grid(True)
+    ax[1].legend()
+
+    # ADX Plot
+    ax[2].plot(df.index[-100:], df["ADX"].tail(100), label="ADX", color="black")
+    ax[2].axhline(25, linestyle="dashed", color="gray", alpha=0.5, label="Trend Strength Threshold (25)")
+    ax[2].set_title("Average Directional Index (ADX)")
+    ax[2].set_xlabel("Time")
+    ax[2].set_ylabel("ADX")
+    ax[2].grid(True)
+    ax[2].legend()
+
+    # Format x-axis for better readability
+    plt.xticks(rotation=45)
+    ax[2].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
+    ax[2].xaxis.set_major_locator(mdates.AutoDateLocator())
+
+    # Save chart to a BytesIO object
+    img = io.BytesIO()
+    plt.tight_layout()
+    plt.savefig(img, format="png", bbox_inches="tight", dpi=200)
     img.seek(0)
     plt.close()
     return img
@@ -226,7 +273,8 @@ def detect_signals(df):
     elif trend == "Strong Downtrend" and latest["RSI"] > 70 and status == "SELL":  # EMAs didn't cross
         signals.append("🎯 *Overall bias: ❌ SELL 🔥🥶*")
     else:
-        signals.append("🎯 *Overall bias: 🥶 %s, better to wait for other confirmations*" % status)
+        # signals.append("🎯 *Overall bias: 🥶 %s, better to wait for other confirmations*" % status)
+        signals.append("🎯 *Overall bias: 🥶 HOLD, better to wait for other confirmations*")
 
     return status, latest["close"], "\n".join(signals).strip()
 
