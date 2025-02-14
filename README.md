@@ -242,7 +242,21 @@ Examples:
 
 	✅ Market Sentiment Check – Integrate data from sources like Binance funding rates to gauge trader sentiment.
 
-
+		1. Improve Buy/Sell Timing
+   			- If RSI is oversold but funding rates remain negative, the downtrend might continue.
+   			- If EMA crossovers suggest a buy, but funding rates are highly negative, waiting for sentiment improvement can reduce false trades.
+   			- Avoiding Traps – Extreme funding rates may indicate overleveraged positions, leading to potential liquidations and reversals
+   
+   		2.	Filter False Breakouts
+   			- A breakout with negative funding rates might be a short squeeze, indicating a potential reversal
+   
+   		3. Identify Bullish vs. Bearish Sentiment
+			- Positive funding rates → More demand for long positions → Bullish sentiment
+			- Negative funding rates → More demand for short positions → Bearish sentiment
+		4. Understanding Market Bias
+   			– Positive funding rates indicate long dominance (bullish sentiment), while negative rates suggest short dominance (bearish sentiment).
+   			- If buy signals align with positive sentiment (longs paying shorts), it adds confluence to decisions made.
+     	
 
 6. User Customization
 
