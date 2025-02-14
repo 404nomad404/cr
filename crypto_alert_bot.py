@@ -143,10 +143,12 @@ def detect_signals(df):
 
     # EMA100 & EMA200 (Golden/Death Cross)
     if latest["EMA100"] > latest["EMA200"] and previous["EMA100"] <= previous["EMA200"]:
-        ema_cross_flag = True
-        signals.append(
-            "✅ *EMA100 crossed above EMA200* - Buy (Golden Cross)\n🔥 This is a long-term bullish signal, suggesting strong momentum!")
-        status = "BUY"
+        # Avoid acting on a single EMA crossover by requiring ADX confirmation.
+        if latest["ADX"] > 25:  # Confirm uptrend momentum
+            ema_cross_flag = True
+            signals.append(
+                "✅ *EMA100 crossed above EMA200* with ADX > 25 - Strong Buy (Golden Cross)\n🔥 This is a long-term bullish signal, suggesting strong momentum!")
+            status = "BUY"
     if latest["EMA100"] < latest["EMA200"] and previous["EMA100"] >= previous["EMA200"]:
         ema_cross_flag = True
         signals.append("❌ *EMA100 crossed below EMA200* - Sell (Death Cross)\n	🚨 A bearish trend is forming")
@@ -154,9 +156,11 @@ def detect_signals(df):
 
     # EMA50 & EMA100
     if latest["EMA50"] > latest["EMA100"] and previous["EMA50"] <= previous["EMA100"]:
-        ema_cross_flag = True
-        signals.append("✅ *EMA50 crossed above EMA100* - Buy")
-        status = "BUY"
+        # Avoid acting on a single EMA crossover by requiring ADX confirmation.
+        if latest["ADX"] > 25:  # Confirm uptrend momentum
+            ema_cross_flag = True
+            signals.append("✅ *EMA50 crossed above EMA100* with ADX > 25 - Strong Buy")
+            status = "BUY"
     if latest["EMA50"] < latest["EMA100"] and previous["EMA50"] >= previous["EMA100"]:
         ema_cross_flag = True
         signals.append("❌ *EMA50 crossed below EMA100* - Sell")
@@ -164,9 +168,11 @@ def detect_signals(df):
 
     # EMA21 & EMA50
     if latest["EMA21"] > latest["EMA50"] and previous["EMA21"] <= previous["EMA50"]:
-        ema_cross_flag = True
-        signals.append("✅ *EMA21 crossed above EMA50* - Buy")
-        status = "BUY"
+        # Avoid acting on a single EMA crossover by requiring ADX confirmation.
+        if latest["ADX"] > 25:  # Confirm uptrend momentum
+            ema_cross_flag = True
+            signals.append("✅ *EMA21 crossed above EMA50* with ADX > 25 - Strong Buy")
+            status = "BUY"
     if latest["EMA21"] < latest["EMA50"] and previous["EMA21"] >= previous["EMA50"]:
         ema_cross_flag = True
         signals.append("❌ *EMA21 crossed below EMA50* - Sell")
@@ -174,9 +180,11 @@ def detect_signals(df):
 
     # EMA7 & EMA21
     if latest["EMA7"] > latest["EMA21"] and previous["EMA7"] <= previous["EMA21"]:
-        ema_cross_flag = True
-        signals.append("✅ *EMA7 crossed above EMA21* - Short-term Buy Signal")
-        status = "BUY"
+        # Avoid acting on a single EMA crossover by requiring ADX confirmation.
+        if latest["ADX"] > 25:  # Confirm uptrend momentum
+            ema_cross_flag = True
+            signals.append("✅ *EMA7 crossed above EMA21* with ADX > 25 - Short-term Buy Signal")
+            status = "BUY"
     if latest["EMA7"] < latest["EMA21"] and previous["EMA7"] >= previous["EMA21"]:
         ema_cross_flag = True
         signals.append("❌ *EMA7 crossed below EMA21* - Short-term Sell Signal")
@@ -201,7 +209,7 @@ def detect_signals(df):
 
     # Trend detection
     if trend == "Strong Uptrend":
-        signals.append("📈 *ADX > 25 (Strong Trend) Uptrend Confirmed*")
+        signals.append("📈 *ADX > 25 (Strong Uptrend) Uptrend Confirmed*")
     elif trend == "Strong Downtrend":
         signals.append("📉 *Downtrend Confirmed - Favoring Sells*")
     elif trend == "Weak Trend / Ranging":
@@ -210,15 +218,15 @@ def detect_signals(df):
 
     # Final bias
     if trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY" and ema_cross_flag is True:
-        signals.append("📉 *Overall bias: 🔥 CONFIRM BUY! 🔥*")
-    elif trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY":  # EMAs didn't cross
-        signals.append("📉 *Overall bias: 🔥 BUY 🥶*")
+        signals.append("🎯 *Overall bias: 🔥 CONFIRM BUY! 🔥*")
+    elif trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY":  # but EMAs didn't cross
+        signals.append("🎯 *Overall bias: 🔥 BUY 🥶*")
     elif trend == "Strong Downtrend" and latest["RSI"] > 70 and status == "SELL" and ema_cross_flag is True:
-        signals.append("📉 *Overall bias: ❌ CONFIRM SELL! 🔥*")
+        signals.append("🎯 *Overall bias: ❌ CONFIRM SELL! 🔥*")
     elif trend == "Strong Downtrend" and latest["RSI"] > 70 and status == "SELL":  # EMAs didn't cross
-        signals.append("📉 *Overall bias: ❌ SELL 🔥🥶*")
+        signals.append("🎯 *Overall bias: ❌ SELL 🔥🥶*")
     else:
-        signals.append("📉 *Overall bias: 🥶 %s, better to wait for other confirmations*" % status)
+        signals.append("🎯 *Overall bias: 🥶 %s, better to wait for other confirmations*" % status)
 
     return status, latest["close"], "\n".join(signals).strip()
 
