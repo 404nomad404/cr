@@ -205,7 +205,6 @@ def detect_signals(df):
             "⚠️ *ADX<20 - No Clear Trend - Market Ranging - Trade with Caution*\n⚠️ Ignore the buy signal")
 
     # Final bias
-
     if trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY" and ema_cross_flag is True:
         signals.append("📉 *Overall bias: 🔥 CONFIRM BUY! 🔥*")
     elif trend == "Strong Uptrend" and latest["RSI"] < 30 and status == "BUY":
