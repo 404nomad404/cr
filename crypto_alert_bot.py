@@ -32,7 +32,7 @@ BINANCE_URL = "https://api.binance.com/api/v3/klines"
 
 
 # Fetch historical data
-def fetch_binance_data(symbol, interval="1h", limit=200):
+def fetch_binance_data(symbol, interval="1d", limit=500):
     url = f"{BINANCE_URL}?symbol={symbol}&interval={interval}&limit={limit}"
     response = requests.get(url)
     data = response.json()
