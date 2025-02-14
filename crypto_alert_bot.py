@@ -148,6 +148,7 @@ def detect_signals(df):
             "✅ *EMA100 crossed above EMA200* - Buy (Golden Cross)\n🔥 This is a long-term bullish signal, suggesting strong momentum!")
         status = "BUY"
     if latest["EMA100"] < latest["EMA200"] and previous["EMA100"] >= previous["EMA200"]:
+        ema_cross_flag = True
         signals.append("❌ *EMA100 crossed below EMA200* - Sell (Death Cross)\n	🚨 A bearish trend is forming")
         status = "SELL"
 
