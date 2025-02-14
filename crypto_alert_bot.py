@@ -266,7 +266,7 @@ def detect_signals(df):
 
     # Trend detection
     if trend == "Strong Uptrend":
-        signals.append("📈 *ADX > 25 (Strong Uptrend) Uptrend Confirmed*")
+        signals.append("📈 *ADX > 25 → Strong Uptrend*")
     elif trend == "Strong Downtrend":
         signals.append("📉 *Downtrend Confirmed - Favoring Sells*")
     elif trend == "Weak Trend / Ranging":
