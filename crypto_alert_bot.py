@@ -264,7 +264,7 @@ def detect_signals(df):
         signals.append(f"🔴 *RSI > {rsi_sell_threshold} → Sell Signal*")
         status = "SELL"
     if latest["RSI"] < rsi_buy_threshold:
-        signals.append(f"🟢 *RSI > {rsi_buy_threshold} → Buy Signal*\n📢 *Buyers could step in soon, but wait for confirmation!*")
+        signals.append(f"🟢 *RSI < {rsi_buy_threshold} → Buy Signal*\n📢 *Buyers could step in soon, but wait for confirmation!*")
         status = "BUY"
 
     # Final bias
