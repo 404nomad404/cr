@@ -93,7 +93,7 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 - At least two indicators must confirm a BUY/SELL before making a decision.
 - Trend Strength & Volume Filtering: Avoids weak/ranging market conditions.
 
-| Market Condition                                   | Output                                                      |
+| Market Condition                                   | Decision                                                      |
 |----------------------------------------------------|-------------------------------------------------------------|
 | **Strong Uptrend, ADX > 25, High Volume**         | 🔥 **BUY** - Strong Uptrend with High Volume & ADX Confirmation |
 | **Moderate Uptrend, ADX > 25**                    | ✅ **BUY** - Uptrend Confirmed with Strong ADX              |
