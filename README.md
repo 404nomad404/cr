@@ -46,6 +46,16 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
   - Identifies Strong Uptrend, Strong Downtrend, or Weak/Ranging Markets using EMA alignment and ADX strength.
   - Determines if a trend is **strong (ADX > 25)** or **weak/ranging (ADX < 20)**.
   - Prevents false signals by avoiding trades in weak-trend conditions.
+
+### **💡 Summary: Best ADX Filters**
+| Filter | Condition | Purpose |
+|--------|------------|---------|
+| **ADX Threshold** | `df["ADX"] > 25` | Avoid weak trends |
+| **ADX Slope** | `df["ADX"].diff() > 0` | Only trade strengthening trends |
+| **EMA Confirmation** | `EMA50 > EMA200` (uptrend), `EMA50 < EMA200` (downtrend) | Confirm trend direction |
+| **RSI Filter** | `RSI between 30-70` | Avoid overbought/oversold conditions |
+| **Volume Confirmation** | `Volume > Avg_Volume` | Avoid false breakouts |
+    
 - **Support & Resistance Detection**
   - Detects **price near support (Buy Zone) or resistance (Sell Zone)**.
     
