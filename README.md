@@ -15,7 +15,7 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 
 ### ✅ **Technical Indicators & Trend Analysis**
 - **Exponential Moving Averages (EMA)**  
-  - Detects key **EMA crossovers** (7, 21, 50, 100, 200).  
+  - Detects key **EMA crossovers** (7, 21, 50, 100, 200) to identify bullish & bearish moving average crossovers
   - Identifies **Golden Cross** (Bullish) and **Death Cross** (Bearish).
   - Filters EMA cross signals with RSI (trend strength) and ADX (momentum)
     
@@ -34,15 +34,14 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
   - Alerts when **RSI is oversold (<30) → Buy Signal**.  
   - Alerts when **RSI is overbought (>70) → Sell Signal**.
   - Adjusts RSI buy/sell levels dynamically based on trend conditions
+    
 - **Average Directional Index (ADX)**
   - Implements ADX (Average Directional Index) to confirm trend strength.
+  - Confirms uptrend/downtrend strength using EMA alignment & ADX
   - Adding trend detection can help you:
-    
-	>✅ Avoid bad trades by filtering weak signals.
- 	>
-	>✅ Confirm strong buy/sell signals based on trend strength.
-  	>
-	>✅ Hold your position instead of reacting to every small price movement.
+  	- Avoid bad trades by filtering weak signals.
+   	- Confirm strong buy/sell signals based on trend strength.
+    - Hold your position instead of reacting to every small price movement.
   - Identifies Strong Uptrend, Strong Downtrend, or Weak/Ranging Markets using EMA alignment and ADX strength.
   - Determines if a trend is **strong (ADX > 25)** or **weak/ranging (ADX < 20)**.
   - Prevents false signals by avoiding trades in weak-trend conditions.
@@ -68,15 +67,17 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 | 🚀 **Breakout Buy**  | Price breaks above **resistance** & EMA 50, 100, 200 | 🔷 *Bullish confirmation*            | ✅ *Buy* |
 | 🔻 **Breakdown Sell** | Price drops below **support** & EMA 50, 100, 200 | 🔻 *Bearish confirmation*            | ⚠️ *Sell/Short* |
 
-- **Volume-Based Signal Validation**
+- **Volume-Based Signal Validation:**
   - Confirms breakouts using moving average of volume.
   - Compute Volume Moving Average (20-period)
-    
-	•	EMA7 & EMA21 → Confirms short-term momentum shifts.
+  	- EMA7 & EMA21 → Confirms short-term momentum shifts.
+   	- EMA21 & EMA50 → Mid-term confirmation of trend changes.
+  - Volume Surge → Ensures crossovers are not false signals.
 
-	•	EMA21 & EMA50 → Mid-term confirmation of trend changes.
+- **Market Sentiment & Volume Analysis:**
+	- Funding Rate Sentiment: Gauges long/short trader bias from Binance funding rates.
+ 	- Whale Activity Detection: Tracks abnormal volume movements to detect large trades.
 
-	•	Volume Surge → Ensures crossovers are not false signals.
  
 ### 📡 **Automated Real-Time Alerts via Telegram**
 - Sends **clear and meaningful** alerts in **Markdown format**.  
@@ -88,12 +89,16 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 - Uses **error handling** to prevent failures when sending messages.  
 - Monitors multiple cryptocurrencies simultaneously.
 
+### ✅ Confirmation-Based Trade Decision:
+- At least two indicators must confirm a BUY/SELL before making a decision.
+- Trend Strength & Volume Filtering: Avoids weak/ranging market conditions.
+
 
 ## 🚀 How It Works  
 1. Fetches **live price data** from Binance API every 15 minutes.  
-2. Computes **technical indicators (EMA, RSI, ADX, Support/Resistance)**.  
+2. Computes **technical indicators.  
 3. Detects **buy/sell signals** based on indicator crossovers & trend confirmation.  
-4. Sends **real-time alerts to Telegram** with price charts.
+4. Sends **real-time alerts to Telegram** with charts.
 5. 🎯 Final Trading Decision Logic:
 	- BUY: When at least 2 BUY signals align, with a strong uptrend & high volume.
  	- SELL: When at least 2 SELL signals align, with a strong downtrend & high volume.
