@@ -6,25 +6,47 @@ from __future__ import unicode_literals
 __author__ = 'Ishafizan'
 __date__: "15 Feb 2025"
 
-import numpy as np
+from datetime import datetime, timedelta
+import requests
 import pandas as pd
 import settings
-import requests
-from datetime import datetime, timedelta
 
 
-# Fetch historical data
-def fetch_binance_data(symbol, interval="1d", limit=settings.BINANCE_HISTORICAL_DATA):
+def fetch_binance_data(symbol, interval="1d", limit=settings.BINANCE_HISTORICAL_DATA, start_date=None, end_date=None):
+    """
+    Fetch historical OHLCV data from Binance API.
+
+    Parameters:
+    - symbol (str): Trading pair symbol (e.g., "BTCUSDT").
+    - interval (str): Timeframe (e.g., "1d", "4h", "1h").
+    - limit (int): Number of data points to fetch.
+    - start_date (str or None): Start date in "YYYY-MM-DD" format (optional).
+    - end_date (str or None): End date in "YYYY-MM-DD" format (optional).
+
+    Returns:
+    - pd.DataFrame: DataFrame containing open, high, low, close, volume with timestamps as index.
+    """
+
     url = f"{settings.BINANCE_URL}?symbol={symbol}&interval={interval}&limit={limit}"
     response = requests.get(url)
     data = response.json()
+
+    # Convert response into DataFrame
     df = pd.DataFrame(data, columns=["timestamp", "open", "high", "low", "close", "volume", "close_time",
                                      "quote_asset_volume", "trades", "taker_base_volume", "taker_quote_volume",
                                      "ignore"])
     df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
+
     # Convert to numeric
     df[['open', 'high', 'low', 'close', 'volume']] = df[['open', 'high', 'low', 'close', 'volume']].astype(float)
     df.set_index("timestamp", inplace=True)
+
+    # 🔹 **Filter by date range (if provided)**
+    if start_date:
+        df = df[df.index >= pd.to_datetime(start_date)]
+    if end_date:
+        df = df[df.index <= pd.to_datetime(end_date)]
+
     return df[['open', 'high', 'low', 'close', 'volume']]
 
 
@@ -93,7 +115,3 @@ def fetch_binance_funding_rates(symbol, limit=1000):
     df["time"] = pd.to_datetime(df["fundingTime"], unit="ms")
 
     return df[["time", "fundingRate"]]
-
-# Example Usage:
-# btc_funding_rates = fetch_binance_funding_rates("BTCUSDT", days=30)
-# print(btc_funding_rates.head())
