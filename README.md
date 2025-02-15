@@ -92,6 +92,14 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 ### ✅ Confirmation-Based Trade Decision:
 - At least two indicators must confirm a BUY/SELL before making a decision.
 - Trend Strength & Volume Filtering: Avoids weak/ranging market conditions.
+  
+## 🚀 How It Works  
+1. Fetches **live price data** from Binance API every 15 minutes.  
+2. Computes **technical indicators.  
+3. Detects **buy/sell signals** based on indicator crossovers & trend confirmation.  
+4. Sends **real-time alerts to Telegram** with charts.
+5. 🎯 Final Trading Decision Logic:
+   
 
 | Market Condition                                   | Decision                                                      |
 |----------------------------------------------------|-------------------------------------------------------------|
@@ -103,12 +111,6 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 | **Weak Downtrend, High Volume**                   | 📉 **SELL** - Downtrend Confirmed with High Volume          |
 | **Weak Trend, ADX < 20**                          | ⚠️ **HOLD** - Weak Trend, Low ADX (No Strong Signal)       |
 
-## 🚀 How It Works  
-1. Fetches **live price data** from Binance API every 15 minutes.  
-2. Computes **technical indicators.  
-3. Detects **buy/sell signals** based on indicator crossovers & trend confirmation.  
-4. Sends **real-time alerts to Telegram** with charts.
-5. 🎯 Final Trading Decision Logic:
 	- BUY: When at least 2 BUY signals align, with a strong uptrend & high volume.
  	- SELL: When at least 2 SELL signals align, with a strong downtrend & high volume.
   	- HOLD: If the market is weak (ADX < 20) or signals are unclear.
