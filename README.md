@@ -58,8 +58,15 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
     
 - **Support & Resistance Detection**
   - Detects **price near support (Buy Zone) or resistance (Sell Zone)**.
-    
-  <a href="https://ibb.co/Xf2GggtK"><img src="https://i.ibb.co/dsWHqqDV/SCR-20250211-rfkg.png" alt="SCR-20250211-rfkg" border="0"></a>
+
+  🔷 **How Support & Resistance Work with EMA Crossovers**
+
+| Scenario          | EMA Signal                                        | Support/Resistance Confirmation         | Action        |
+|------------------|------------------------------------------------|----------------------------------------|--------------|
+| 📈 **BUY**        | EMA 7 > EMA 21, EMA 21 > EMA 50                | Price bouncing from **support**       | 🔥 *Strong Buy* |
+| 📉 **SELL**       | EMA 7 < EMA 21, EMA 21 < EMA 50                | Price rejected at **resistance**      | 🛑 *Strong Sell* |
+| 🚀 **Breakout Buy**  | Price breaks above **resistance** & EMA 50, 100, 200 | 🔷 *Bullish confirmation*            | ✅ *Buy* |
+| 🔻 **Breakdown Sell** | Price drops below **support** & EMA 50, 100, 200 | 🔻 *Bearish confirmation*            | ⚠️ *Sell/Short* |
 
 - **Volume-Based Signal Validation**
   - Confirms breakouts using moving average of volume.
