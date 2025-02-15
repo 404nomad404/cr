@@ -43,48 +43,30 @@ def detect_signals(df, symbol):
     """
 
     # ✅ Compute all necessary indicators and extract latest price data
-    df = util_indicators.calculate_indicators(df)  # Apply indicators to the DataFrame
-    latest = df.iloc[-1]  # Latest candle data (most recent)
-    previous = df.iloc[-2]  # Previous candle data (for confirming crossovers)
+    df = util_indicators.calculate_indicators(df)
+    latest = df.iloc[-1]
+    previous = df.iloc[-2]
 
-    # ✅ Detect signals from individual technical indicators
     ema_signals, ema_status, ema_cross_flag = util_signals.detect_ema_crossovers(latest, previous)
     sr_signals, sr_status = util_signals.detect_support_resistance_sr(latest)
     trend_signals, trend_status = util_signals.detect_trend(df)
     rsi_signals, rsi_status = util_signals.detect_rsi_signals(latest, trend_status)
     breakout_signal, breakout_status = util_signals.detect_breakouts(df)
 
-    # ✅ Combine all detected signals into a list
     all_signals = ema_signals + breakout_signal + sr_signals + rsi_signals + [trend_signals]
+    all_signals.append(util_signals.get_market_sentiment(symbol))
+    all_signals.append(util_signals.detect_whale_activity(df))
 
-    # ✅ Integrate additional market data for sentiment analysis
-    all_signals.append(util_signals.get_market_sentiment(symbol))  # Funding rates-based sentiment
-    all_signals.append(util_signals.detect_whale_activity(df))  # Whale accumulation/dumping detection
+    buy_signals = [s for s in [ema_status, sr_status, rsi_status, breakout_status] if s == "BUY"]
+    sell_signals = [s for s in [ema_status, sr_status, rsi_status, breakout_status] if s == "SELL"]
 
-    # ✅ Count BUY & SELL signals to ensure confirmation-based decision-making
-    buy_signals = [status for status in [ema_status, sr_status, rsi_status] if status == "BUY"]
-    sell_signals = [status for status in [ema_status, sr_status, rsi_status] if status == "SELL"]
+    final_status, final_status_message = util_indicators.determine_final_status(trend_status, buy_signals, sell_signals,
+                                                                                latest)
+    all_signals.append(f"\n🎯 *DECISION:*\n{final_status_message}")
 
-    # ✅ Extract key market conditions
-    adx_value = latest.get("ADX", 0)  # ADX value to assess trend strength
-    high_volume = latest["volume"] > latest["Volume_MA"]  # Check if volume is above average
+    # log.info(all_signals)
+    log.info(final_status_message)
 
-    # ✅ Determine the final trading decision using Confirmation-Based Strategy
-    if trend_status in ["Strong Uptrend", "Moderate Uptrend"] and len(
-            buy_signals) >= 2 and high_volume and adx_value > 25:
-        final_status = "BUY"  # Confirmed buy signal in a strong uptrend
-    elif trend_status in ["Strong Downtrend", "Moderate Downtrend"] and len(
-            sell_signals) >= 2 and high_volume and adx_value > 25:
-        final_status = "SELL"  # Confirmed sell signal in a strong downtrend
-    elif adx_value < 20:
-        final_status = "HOLD"  # Weak trend → Avoid unnecessary trades
-    else:
-        final_status = "HOLD"  # Default to HOLD if conditions aren't strong enough
-
-    # ✅ Append final decision to signals list
-    all_signals.append(f"\n🎯 *DECISION:* {final_status}")
-
-    # ✅ Return the final status, latest closing price, and all compiled signals as a formatted message
     return final_status, latest["close"], "\n".join(all_signals).strip()
 
 
