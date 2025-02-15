@@ -149,7 +149,7 @@ python crypto_alert_bot.py
 	- RSI < 30
 	- ADX >25
       
-   View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a>
+   View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a> (version 7)
    
 
 
