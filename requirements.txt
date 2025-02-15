@@ -1,0 +1,9 @@
+pandas
+numpy
+matplotlib
+seaborn
+ccxt
+requests
+python-telegram-bot
+ta  # Technical analysis library
+asyncio
