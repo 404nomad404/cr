@@ -93,6 +93,15 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 - At least two indicators must confirm a BUY/SELL before making a decision.
 - Trend Strength & Volume Filtering: Avoids weak/ranging market conditions.
 
+| Market Condition                                   | Output                                                      |
+|----------------------------------------------------|-------------------------------------------------------------|
+| **Strong Uptrend, ADX > 25, High Volume**         | 🔥 **BUY** - Strong Uptrend with High Volume & ADX Confirmation |
+| **Moderate Uptrend, ADX > 25**                    | ✅ **BUY** - Uptrend Confirmed with Strong ADX              |
+| **Weak Uptrend, High Volume**                     | 📈 **BUY** - Uptrend Confirmed with High Volume             |
+| **Strong Downtrend, ADX > 25, High Volume**       | 🛑 **SELL** - Strong Downtrend with High Volume & ADX Confirmation |
+| **Moderate Downtrend, ADX > 25**                  | ❌ **SELL** - Downtrend Confirmed with Strong ADX           |
+| **Weak Downtrend, High Volume**                   | 📉 **SELL** - Downtrend Confirmed with High Volume          |
+| **Weak Trend, ADX < 20**                          | ⚠️ **HOLD** - Weak Trend, Low ADX (No Strong Signal)       |
 
 ## 🚀 How It Works  
 1. Fetches **live price data** from Binance API every 15 minutes.  
