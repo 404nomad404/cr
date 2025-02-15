@@ -25,48 +25,64 @@ def detect_ema_crossovers(latest, previous):
 
     Returns:
     tuple:
-        - signals (list): Formatted messages indicating detected EMA crossovers.
-        - status (str): The overall trading action determined (BUY, SELL, or HOLD).
+        - signals (list): Messages indicating detected EMA crossovers.
+        - status (str): Overall trading action determined (BUY, SELL, or HOLD).
         - ema_cross_flag (bool): Flag indicating if any crossover occurred.
     """
 
-    signals = []  # Stores crossover messages
+    signals = []  # Stores detected crossover messages
+    ema_cross_flag = False  # Track if any crossover happened
     status = "HOLD"  # Default action if no crossover occurs
-    ema_cross_flag = False  # Track if a crossover happened
 
-    # Ensure ADX is available, otherwise default to 0
+    # Extract ADX value and volume conditions
     adx_value = latest.get("ADX", 0)
-
-    # Define EMA crossover conditions: (short EMA, long EMA, message, signal type)
-    crossover_conditions = [
-        ("EMA21", "EMA50", "📈 *EMA21 crossed above EMA50 with High Volume → 🔥 Stronger Bullish Confirmation!*", "BUY"),
-        ("EMA21", "EMA50", "📉 *EMA21 crossed below EMA50 with High Volume → ❌ Stronger Bearish Confirmation!*", "SELL"),
-        ("EMA100", "EMA200", "✅ *EMA100 crossed above EMA200* with ADX > 25 → Strong Buy (Golden Cross)", "BUY"),
-        ("EMA100", "EMA200", "❌ *EMA100 crossed below EMA200* → Sell (Death Cross)", "SELL"),
-        ("EMA50", "EMA100", "✅ *EMA50 crossed above EMA100* with ADX > 25 → Strong Buy", "BUY"),
-        ("EMA50", "EMA100", "❌ *EMA50 crossed below EMA100* → Sell", "SELL"),
-        ("EMA7", "EMA21", "✅ *EMA7 crossed above EMA21* with ADX > 25 - Short-term Buy Signal", "BUY"),
-        ("EMA7", "EMA21", "❌ *EMA7 crossed below EMA21* → Short-term Sell Signal", "SELL")
-    ]
-
-    # Check if volume is above its moving average
     high_volume = latest["volume"] > latest["Volume_MA"]
 
-    # Loop through crossover conditions and detect signals
-    for short_ema, long_ema, message, signal in crossover_conditions:
+    # Define EMA crossover conditions: (short EMA, long EMA, messages, signal type)
+    crossover_conditions = [
+        ("EMA21", "EMA50", "📈 *EMA21 crossed above EMA50*", "📉 *EMA21 crossed below EMA50*", "BUY", "SELL"),
+        ("EMA100", "EMA200", "✅ *EMA100 crossed above EMA200 (Golden Cross)*",
+         "❌ *EMA100 crossed below EMA200 (Death Cross)*", "BUY", "SELL"),
+        ("EMA50", "EMA100", "✅ *EMA50 crossed above EMA100*", "❌ *EMA50 crossed below EMA100*", "BUY", "SELL"),
+        ("EMA7", "EMA21", "✅ *EMA7 crossed above EMA21 (Short-term Buy)*",
+         "❌ *EMA7 crossed below EMA21 (Short-term Sell)*", "BUY", "SELL")
+    ]
+
+    # Check for each EMA crossover condition
+    for short_ema, long_ema, bullish_msg, bearish_msg, buy_status, sell_status in crossover_conditions:
         bullish_crossover = latest[short_ema] > latest[long_ema] and previous[short_ema] <= previous[long_ema]
         bearish_crossover = latest[short_ema] < latest[long_ema] and previous[short_ema] >= previous[long_ema]
 
-        # If a crossover occurs, validate it with ADX and volume confirmation
-        if bullish_crossover or bearish_crossover:
-            if adx_value > 25 or high_volume:  # Confirm trend strength with ADX or volume
-                ema_cross_flag = True
-                signals.append(message)
-                status = signal  # Update status to BUY or SELL
+        # Use the index as the date
+        latest_date = latest.name if hasattr(latest, "name") else "UNKNOWN_DATE"
 
-    # If no crossovers are detected, append a neutral message
+        if bullish_crossover:
+            msg = bullish_msg
+            if adx_value > 25:
+                msg += " 🔥 (Confirmed by ADX > 25)"
+            if high_volume:
+                msg += " 🚀 (Confirmed by High Volume)"
+            msg += f"\n🚀 BUY SIGNAL: {bullish_msg} at price {latest['close']} on {latest_date}"
+            # print(f"\n🚀 BUY SIGNAL: {bullish_msg} at price {latest['close']} on {latest_date}")
+            signals.append(msg)
+            ema_cross_flag = True
+            status = buy_status  # Update status to BUY
+
+        if bearish_crossover:
+            msg = bearish_msg
+            if adx_value > 25:
+                msg += " 🔴 Confirmed by ADX > 25"
+            if high_volume:
+                msg += " 🔴 Confirmed by High Volume"
+            msg += f"\n🚀 BUY SIGNAL: {bearish_msg} at price {latest['close']} on {latest_date}"
+            # print(f"🔻 SELL SIGNAL: {bearish_msg} at price {latest['close']} on {latest_date}")
+            signals.append(msg)
+            ema_cross_flag = True
+            status = sell_status  # Update status to SELL
+
+    # If no crossovers occurred, append neutral message
     if not ema_cross_flag:
-        signals.append("⚪ *No EMA crosses detected.* Market is consolidating or in a sideways trend.")
+        signals.append("⚪ *No EMA crosses detected.* Market is sideways.")
 
     return signals, status, ema_cross_flag  # Return signals, trade action, and crossover flag
 
