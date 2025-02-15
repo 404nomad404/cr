@@ -14,7 +14,7 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 - Supports multiple crypto pairs (configurable in settings.SYMBOLS).
 
 ### ✅ **Technical Indicators & Trend Analysis**
-- **Exponential Moving Averages (EMA)**  
+1. **Exponential Moving Averages (EMA)**  
   - Detects key **EMA crossovers** (7, 21, 50, 100, 200) to identify bullish & bearish moving average crossovers
   - Identifies **Golden Cross** (Bullish) and **Death Cross** (Bearish).
   - Filters EMA cross signals with RSI (trend strength) and ADX (momentum)
@@ -29,13 +29,13 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 | **EMA7/EMA21**                         | *EMA7 crossed above EMA21*      | *EMA7 crossed below EMA21*      | **Short-term momentum change**     |
 
 
-- **Relative Strength Index (RSI)**
+2. **Relative Strength Index (RSI)**
   - RSI-based alerts for momentum-based trades
   - Alerts when **RSI is oversold (<30) → Buy Signal**.  
   - Alerts when **RSI is overbought (>70) → Sell Signal**.
   - Adjusts RSI buy/sell levels dynamically based on trend conditions
     
-- **Average Directional Index (ADX)**
+3. **Average Directional Index (ADX)**
   - Implements ADX (Average Directional Index) to confirm trend strength.
   - Confirms uptrend/downtrend strength using EMA alignment & ADX
   - Adding trend detection can help you:
@@ -46,7 +46,7 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
   - Determines if a trend is **strong (ADX > 25)** or **weak/ranging (ADX < 20)**.
   - Prevents false signals by avoiding trades in weak-trend conditions.
 
-### **💡 Summary: Best ADX Filters**
+	#### **💡 Summary: Best ADX Filters**
 | Filter | Condition | Purpose |
 |--------|------------|---------|
 | **ADX Threshold** | `df["ADX"] > 25` | Avoid weak trends |
@@ -55,10 +55,10 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 | **RSI Filter** | `RSI between 30-70` | Avoid overbought/oversold conditions |
 | **Volume Confirmation** | `Volume > Avg_Volume` | Avoid false breakouts |
     
-- **Support & Resistance Detection**
+4. **Support & Resistance Detection**
   - Detects **price near support (Buy Zone) or resistance (Sell Zone)**.
 
-  🔷 **How Support & Resistance Work with EMA Crossovers**
+ #### 🔷 **How Support & Resistance Work with EMA Crossovers**
 
 | Scenario          | EMA Signal                                        | Support/Resistance Confirmation         | Action        |
 |------------------|------------------------------------------------|----------------------------------------|--------------|
@@ -67,14 +67,14 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 | 🚀 **Breakout Buy**  | Price breaks above **resistance** & EMA 50, 100, 200 | 🔷 *Bullish confirmation*            | ✅ *Buy* |
 | 🔻 **Breakdown Sell** | Price drops below **support** & EMA 50, 100, 200 | 🔻 *Bearish confirmation*            | ⚠️ *Sell/Short* |
 
-- **Volume-Based Signal Validation:**
+5. **Volume-Based Signal Validation:**
   - Confirms breakouts using moving average of volume.
   - Compute Volume Moving Average (20-period)
   	- EMA7 & EMA21 → Confirms short-term momentum shifts.
    	- EMA21 & EMA50 → Mid-term confirmation of trend changes.
   - Volume Surge → Ensures crossovers are not false signals.
 
-- **Market Sentiment & Volume Analysis:**
+6. **Market Sentiment & Volume Analysis:**
 	- Funding Rate Sentiment: Gauges long/short trader bias from Binance funding rates.
  	- Whale Activity Detection: Tracks abnormal volume movements to detect large trades.
 
