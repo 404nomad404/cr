@@ -141,7 +141,7 @@ python crypto_alert_bot.py
 
 	✅ Helps visualize price movement before making decisions.
 
-   <a href="https://ibb.co/NggdCHtC"><img src="https://i.ibb.co/kVVsBW5B/SCR-20250215-ppab.png" alt="SCR-20250215-ppab" border="0"></a>
+   <a href="https://ibb.co/8gbFGzwn"><img src="https://i.ibb.co/tpzynZ6w/SCR-20250215-pqjh.png" alt="SCR-20250215-pqjh" border="0"></a>
 
    💡 Tip: If the 3 amigos are aligned with the heavens, confirm buy 🚀
 
