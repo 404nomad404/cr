@@ -94,12 +94,16 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 2. Computes **technical indicators (EMA, RSI, ADX, Support/Resistance)**.  
 3. Detects **buy/sell signals** based on indicator crossovers & trend confirmation.  
 4. Sends **real-time alerts to Telegram** with price charts.
-5. The system ensures alerts are only sent when new conditions appear to prevent redundant notifications.
+5. 🎯 Final Trading Decision Logic:
+	- BUY: When at least 2 BUY signals align, with a strong uptrend & high volume.
+ 	- SELL: When at least 2 SELL signals align, with a strong downtrend & high volume.
+  	- HOLD: If the market is weak (ADX < 20) or signals are unclear.
+7. The system ensures alerts are only sent when new conditions appear to prevent redundant notifications.
 
 ## 📂 **Setup Instructions**  
 1. Install dependencies:  
    ```bash
-   pip install requests pandas numpy matplotlib python-telegram-bot
+   pip install -r requirements.txt
 2.  To create a Telegram bot token
     - Open the Telegram app
     - Search for "@BotFather"
@@ -135,19 +139,13 @@ python crypto_alert_bot.py
 
 📌 Example Telegram Alert:
 
-	✅ Sends a message with price trend alerts.
+	✅ Sends detailed Telegram alerts including price, trend, and reasoning
 
-	✅ Attaches a small trend chart showing the last 50 candles.
+	✅ Attaches a small trend chart
 
 	✅ Helps visualize price movement before making decisions.
 
    <a href="https://ibb.co/8gbFGzwn"><img src="https://i.ibb.co/tpzynZ6w/SCR-20250215-pqjh.png" alt="SCR-20250215-pqjh" border="0"></a>
-
-   💡 Tip: If the 3 amigos are aligned with the heavens, confirm buy 🚀
-
-   	- EMA 21, 50 crosses
-	- RSI < 30
-	- ADX >25
       
    View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a> (version 7)
    
