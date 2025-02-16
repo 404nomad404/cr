@@ -163,7 +163,7 @@ python crypto_alert_bot.py
 
    <a href="https://ibb.co/4g5KfFg2"><img src="https://i.ibb.co/VpPJNLpx/SCR-20250216-liur.png" alt="SCR-20250216-liur" border="0"></a>
       
-   View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a> (version 7)
+   View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a> (version 8)
    
 
 
