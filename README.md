@@ -161,7 +161,7 @@ python crypto_alert_bot.py
 
 	✅ Helps visualize price movement before making decisions.
 
-   <a href="https://ibb.co/yBQ3w1FF"><img src="https://i.ibb.co/DgRqxyff/SCR-20250215-sbrn.png" alt="SCR-20250215-sbrn" border="0"></a>
+   <a href="https://ibb.co/4g5KfFg2"><img src="https://i.ibb.co/VpPJNLpx/SCR-20250216-liur.png" alt="SCR-20250216-liur" border="0"></a>
       
    View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a> (version 7)
    
