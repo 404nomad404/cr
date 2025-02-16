@@ -255,8 +255,15 @@ Examples:
 
 	✅ MACD Indicator – Add another confirmation layer to trend shifts.
 
+| Indicator        | Signal Mechanism                          | How It Relates |
+|-----------------|-----------------------------------------|---------------|
+| **EMA Crossovers** | When `EMA_Short` crosses `EMA_Long` | This is **exactly** when the **MACD Line crosses zero**. |
+| **MACD Line**   | Difference between `EMA_Short` and `EMA_Long` | Positive MACD means bullish momentum (above zero), negative MACD means bearish (below zero). |
+| **Signal Line** | 9-period EMA of MACD Line | Helps filter out false signals. |
+| **MACD Histogram** | MACD Line - Signal Line | Highlights strength and confirmation of the trend. |
 
-4. **Improved Alerts & Decision Support**
+
+5. **Improved Alerts & Decision Support**
 
 	✅ Risk/Reward Estimation – Suggest optimal entry price, stop-loss, and take-profit levels. (*KIV*)
 
