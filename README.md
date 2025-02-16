@@ -233,8 +233,16 @@ Examples:
 
 	✅ Trend Score – Score from 1 to 100 based on EMAs, RSI, and momentum. Helps gauge bullish/bearish strength.
 
+| Trend Score | Message                                      |
+|------------|----------------------------------------------|
+| **0-20**   | "Very weak trend, choppy price action."     |
+| **21-40**  | "Weak trend, avoid trading in ranging markets." |
+| **41-60**  | "Moderate trend, potential setups forming." |
+| **61-80**  | "Strong trend detected, possible breakout soon." |
+| **81-100** | "Very strong trend, momentum is high!"      | 	
 
-2. **Additional Market Insights**
+
+3. **Additional Market Insights**
 
 	✅ Volume Analysis – Identify spikes in buying/selling volume to confirm trend strength. (Done)
 
