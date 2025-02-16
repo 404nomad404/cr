@@ -229,7 +229,7 @@ Examples:
 
 1. **Trade Confidence & Signal Strength**
 
-	✅ Signal Strength Meter – Assign confidence levels to signals (e.g., weak/medium/strong) based on multiple confirmations.
+	✅ Signal Strength Meter – Assign confidence levels to signals (e.g., weak/medium/strong) based on multiple confirmations. (Done)
 
 	✅ Trend Score – Score from 1 to 100 based on EMAs, RSI, and momentum. Helps gauge bullish/bearish strength.
 
