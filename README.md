@@ -231,7 +231,7 @@ Examples:
 
 	✅ Signal Strength Meter – Assign confidence levels to signals (e.g., weak/medium/strong) based on multiple confirmations. (Done)
 
-	✅ Trend Score – Score from 1 to 100 based on EMAs, RSI, and momentum. Helps gauge bullish/bearish strength.
+	✅ Trend Score – Score from 1 to 100 based on EMAs, RSI, and momentum. Helps gauge bullish/bearish strength. (Done)
 
 | Trend Score | Message                                      |
 |------------|----------------------------------------------|
