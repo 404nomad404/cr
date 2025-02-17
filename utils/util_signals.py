@@ -74,7 +74,7 @@ def detect_ema_crossovers(latest, previous):
                 msg += " 🔴 Confirmed by ADX > 25"
             if high_volume:
                 msg += " 🔴 Confirmed by High Volume"
-            msg += f"\n🚀 BUY SIGNAL: {bearish_msg} at price {latest['close']} on {latest_date}"
+            msg += f"\n🚀 SELL SIGNAL: {bearish_msg} at price {latest['close']} on {latest_date}"
             # print(f"🔻 SELL SIGNAL: {bearish_msg} at price {latest['close']} on {latest_date}")
             signals.append(msg)
             ema_cross_flag = True
