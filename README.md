@@ -162,6 +162,11 @@ python crypto_alert_bot.py
 	✅ Helps visualize price movement before making decisions.
 
    <a href="https://ibb.co/tTqSP2N6"><img src="https://i.ibb.co/W4kQpzdX/SCR-20250217-lhfk.png" alt="SCR-20250217-lhfk" border="0"></a>
+   - ChapGPT analysis: https://app.simplenote.com/p/X1ycfv
+   - DeepSeek analysis: https://app.simplenote.com/p/S8VJN0
+   - Grok analysis: https://app.simplenote.com/p/Nfv3kR
+   - Google Gemini: http://simp.ly/p/GhhThM
+   - DeepSeek: Bz and aboned after 10 tries. Too hyped and not ready for the masses
       
    View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a> (version 11)
    
