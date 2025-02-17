@@ -166,7 +166,6 @@ python crypto_alert_bot.py
    - DeepSeek analysis: https://app.simplenote.com/p/S8VJN0
    - Grok analysis: https://app.simplenote.com/p/Nfv3kR
    - Google Gemini: http://simp.ly/p/GhhThM
-   - DeepSeek: Bz and aboned after 10 tries. Too hyped and not ready for the masses
       
    View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a> (version 11)
    
