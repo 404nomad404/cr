@@ -257,7 +257,7 @@ Examples:
 
 	✅ Volatility Indicator – Show if the market is trending or ranging to avoid fakeouts.
 
-	✅ MACD Indicator – Add another confirmation layer to trend shifts.
+	✅ MACD Indicator – Add another confirmation layer to trend shifts. (Done)
 
 | Indicator        | Signal Mechanism                          | How It Relates |
 |-----------------|-----------------------------------------|---------------|
