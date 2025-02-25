@@ -10,6 +10,7 @@ import talib
 import settings
 from utils.util_gen import fetch_cme_open_interest, fetch_binance_open_interest
 from utils.util_log import logger
+import pandas as pd
 
 # Initialize logger for tracking indicator calculations
 log = logger()
@@ -117,20 +118,61 @@ def calculate_adx(df, period=14):
     - ADX < 25: Weak or ranging market.
 
     Args:
-        df (pd.DataFrame): Data with 'high', 'low', 'close'.
+        df (pd.DataFrame): Data with 'high', 'low', 'close' columns.
         period (int): Lookback period (default 14).
 
     Returns:
-        pd.Series: ADX values.
+        pd.Series: ADX values (ensured >= 0).
     """
-    df["high-low"] = df["high"] - df["low"]
-    df["+DM"] = df["high"].diff().where(df["high"].diff() > df["low"].diff(), 0)
-    df["-DM"] = -df["low"].diff().where(df["low"].diff() > df["high"].diff(), 0)
-    df["+DI"] = (df["+DM"].rolling(window=period).mean() / df["high-low"].rolling(window=period).mean()) * 100
-    df["-DI"] = (df["-DM"].rolling(window=period).mean() / df["high-low"].rolling(window=period).mean()) * 100
-    df["DX"] = abs(df["+DI"] - df["-DI"]) / (df["+DI"] + df["-DI"]) * 100
-    df["ADX"] = df["DX"].rolling(window=period).mean()
+    if len(df) < period + 1:
+        log.error(f"Insufficient data for ADX calculation: {len(df)} rows, need at least {period + 1}")
+        return pd.Series(index=df.index, data=0.0)
 
+    required_cols = ['high', 'low', 'close']
+    for col in required_cols:
+        if col not in df.columns or not pd.api.types.is_numeric_dtype(df[col]):
+            log.error(f"Invalid data for ADX calculation: '{col}' missing or non-numeric")
+            return pd.Series(index=df.index, data=0.0)
+
+    # Corrected log.debug statement
+    # log.debug(f"ADX input data tail: {df[required_cols].tail(5).to_dict()}")
+
+    # Calculate True Range (TR)
+    df["high-low"] = df["high"] - df["low"]
+    df["high-prev_close"] = abs(df["high"] - df["close"].shift(1))
+    df["low-prev_close"] = abs(df["low"] - df["close"].shift(1))
+    df["TR"] = df[["high-low", "high-prev_close", "low-prev_close"]].max(axis=1)
+
+    # Directional Movement (+DM, -DM)
+    df["+DM"] = (df["high"] - df["high"].shift(1)).where(
+        (df["high"] - df["high"].shift(1)) > (df["low"].shift(1) - df["low"]), 0
+    )
+    df["-DM"] = (df["low"].shift(1) - df["low"]).where(
+        (df["low"].shift(1) - df["low"]) > (df["high"] - df["high"].shift(1)), 0
+    )
+
+    # Smooth TR and DM with rolling mean
+    df["TR_smooth"] = df["TR"].rolling(window=period, min_periods=1).mean()
+    df["+DM_smooth"] = df["+DM"].rolling(window=period, min_periods=1).mean()
+    df["-DM_smooth"] = df["-DM"].rolling(window=period, min_periods=1).mean()
+
+    # Calculate Directional Indexes (+DI, -DI)
+    df["+DI"] = (df["+DM_smooth"] / df["TR_smooth"] * 100).clip(lower=0).fillna(0)
+    df["-DI"] = (df["-DM_smooth"] / df["TR_smooth"] * 100).clip(lower=0).fillna(0)
+
+    # Calculate DX
+    di_sum = df["+DI"] + df["-DI"]
+    df["DX"] = (abs(df["+DI"] - df["-DI"]) / di_sum).where(di_sum > 0, 0) * 100
+
+    # Calculate ADX
+    df["ADX"] = df["DX"].rolling(window=period, min_periods=1).mean().fillna(0)
+
+    # Ensure ADX is non-negative
+    if df["ADX"].min() < 0:
+        log.error(f"Invalid ADX value detected: {df['ADX'].min()}. Forcing non-negative values.")
+        df["ADX"] = df["ADX"].clip(lower=0)
+
+    # log.debug(f"ADX calculated: {df['ADX'].iloc[-1]:.2f}")
     return df["ADX"]
 
 
@@ -231,7 +273,8 @@ def calculate_macd(df, short_window=12, long_window=26, signal_window=9):
     Returns:
         pd.DataFrame: Dataframe with MACD columns.
     """
-    df['MACD_Line'] = df['close'].ewm(span=short_window, adjust=False).mean() - df['close'].ewm(span=long_window, adjust=False).mean()
+    df['MACD_Line'] = df['close'].ewm(span=short_window, adjust=False).mean() - df['close'].ewm(span=long_window,
+                                                                                                adjust=False).mean()
     df['Signal_Line'] = df['MACD_Line'].ewm(span=signal_window, adjust=False).mean()
     df['MACD_Histogram'] = df['MACD_Line'] - df['Signal_Line']
     return df
@@ -307,9 +350,10 @@ def williams_vix_fix(df, period=22, bb_period=20, mult=2):
     Returns:
         pd.DataFrame: Dataframe with WVIX and BB columns.
     """
-    df['WVIF'] = ((df['high'].rolling(window=period).max() - df['close']) / df['high'].rolling(window=period).max()) * 100
-    df['WVIF_SMA'] = df['WVIF'].rolling(window=bb_period).mean()
-    df['WVIF_STD'] = df['WVIF'].rolling(window=bb_period).std()
+    df['WVIF'] = ((df['high'].rolling(window=period, min_periods=1).max() - df['close']) /
+                  df['high'].rolling(window=period, min_periods=1).max()) * 100
+    df['WVIF_SMA'] = df['WVIF'].rolling(window=bb_period, min_periods=1).mean()
+    df['WVIF_STD'] = df['WVIF'].rolling(window=bb_period, min_periods=1).std().fillna(0)  # Fill NaN for early rows
     df['WVIF_BB_UPPER'] = df['WVIF_SMA'] + (df['WVIF_STD'] * mult)
     df['WVIF_BB_LOWER'] = df['WVIF_SMA'] - (df['WVIF_STD'] * mult)
     return df
@@ -328,10 +372,19 @@ def calculate_stochastic(df):
     Returns:
         pd.DataFrame: Dataframe with 'fastk' and 'fastd' columns.
     """
-    df['fastk'], df['fastd'] = talib.STOCH(
+    # Ensure enough data, pad with NaN if needed
+    if len(df) < 14:  # Minimum for fastk_period=14
+        log.warning(f"Insufficient data for Stochastic: {len(df)} rows, need at least 14")
+        df['fastk'] = pd.Series(index=df.index, dtype=float)
+        df['fastd'] = pd.Series(index=df.index, dtype=float)
+        return df
+
+    fastk, fastd = talib.STOCH(
         df['high'], df['low'], df['close'],
         fastk_period=14, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=0
     )
+    df['fastk'] = fastk
+    df['fastd'] = fastd.fillna(0)  # Fill NaN with 0 for early rows
     return df
 
 
