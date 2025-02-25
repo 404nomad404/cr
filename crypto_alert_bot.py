@@ -3,7 +3,7 @@ from __future__ import division, print_function, unicode_literals
 
 __author__ = 'Ishafizan'
 __date__ = "17 Feb 2025"
-__version__ = 13
+__version__ = 14
 """
 Crypto Alert Bot: A real-time cryptocurrency market monitoring and trading signal generator.
 
@@ -31,26 +31,27 @@ import io
 from utils import util_log, util_gen, util_indicators, util_signals, util_notify, util_chart, util_redis
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler
+import pandas as pd
 
 # Telegram Bot API Configuration
 TELEGRAM_BOT_TOKEN = settings.TELEGRAM_BOT_TOKEN  # Bot authentication token from Telegram
-TELEGRAM_CHAT_ID = settings.TELEGRAM_CHAT_ID      # Target chat ID for group alerts
-SEND_CHAT = settings.SEND_CHAT                    # Flag to enable/disable Telegram alerts
-BOT_USERNAME = settings.BOT_USERNAME              # Bot's Telegram username for private chat links
+TELEGRAM_CHAT_ID = settings.TELEGRAM_CHAT_ID  # Target chat ID for group alerts
+SEND_CHAT = settings.SEND_CHAT  # Flag to enable/disable Telegram alerts
+BOT_USERNAME = settings.BOT_USERNAME  # Bot's Telegram username for private chat links
 
 # Logger Initialization
 log = util_log.logger()  # Centralized logging instance for debugging and monitoring
 
 # Redis Connection Setup
 redis_client = redis.Redis(
-    host=settings.REDIS_HOST,      # Redis server hostname
-    port=settings.REDIS_PORT,      # Redis server port
-    db=settings.REDIS_DB,          # Redis database index
-    decode_responses=False         # Keep responses as bytes for binary data (e.g., charts)
+    host=settings.REDIS_HOST,  # Redis server hostname
+    port=settings.REDIS_PORT,  # Redis server port
+    db=settings.REDIS_DB,  # Redis database index
+    decode_responses=False  # Keep responses as bytes for binary data (e.g., charts)
 )
 
 # Monitoring Configuration
-REFRESH_INTERVAL = 3 * 60 * 60  # 3-hour refresh interval in seconds (10,800s) for full symbol updates
+REFRESH_INTERVAL = settings.MESSAGE_TTL  # refresh interval in seconds for full symbol updates
 
 
 def detect_signals(df, symbol):
@@ -62,20 +63,30 @@ def detect_signals(df, symbol):
         symbol (str): Cryptocurrency trading pair (e.g., "BTCUSDT").
 
     Returns:
-        tuple: (action, price, alert_message, trade_signals, signal_statuses)
-            - action (str): Final trading decision ("BUY", "SELL", "HOLD").
-            - price (float): Current closing price.
-            - alert_message (str): Formatted Telegram alert with detailed analysis.
-            - trade_signals (dict): Signal details including action, strength, and message.
-            - signal_statuses (dict): Status of individual indicators for change detection.
+        tuple: (action, price, alert_message, trade_signals, signal_statuses, df)
     """
-    # Calculate technical indicators for the symbol
-    df = util_indicators.calculate_indicators(df)
-    latest = df.iloc[-1]    # Latest candlestick data
-    previous = df.iloc[-2]  # Previous candlestick for crossover detection
-    all_signals = []        # List to aggregate analysis messages
+    df = util_gen.fetch_binance_data(symbol, interval="1d", limit=20)
+    # log.info(f"Raw data for {symbol}: {df[['open', 'high', 'low', 'close', 'volume']].tail(5).to_dict()}")
 
-    # Detect signals from various indicators
+    if len(df) < 2:
+        log.error(f"Insufficient data for {symbol}: {len(df)} rows, need at least 2 for price change")
+        latest = df.iloc[-1] if not df.empty else pd.Series({'close': 0, 'volume': 0})
+        previous = latest
+    else:
+        initial_latest = df.iloc[-1].copy()
+        previous = df.iloc[-2]
+        prev_close = previous["close"]  # Store separately
+
+    # Apply indicators
+    df = util_indicators.calculate_indicators(df)
+    latest = df.iloc[-1].copy()  # Update with indicators
+    latest["Prev_Close"] = prev_close  # Reassign after indicators
+
+    price_change = ((latest["close"] - prev_close) / prev_close) * 100 if prev_close != 0 else 0
+    log.info(f"Price change for {symbol}: {price_change:.2f}%, latest={latest['close']:.2f}, prev={prev_close:.2f}")
+    log.info(f"Latest before trade signal: {latest[['close', 'Prev_Close', 'ADX', 'volume', 'Volume_MA']].to_dict()}")
+
+    # Detect signals
     ema_signals, ema_status, ema_cross_flag = util_signals.detect_ema_crossovers(log, latest, previous)
     sr_signals, sr_status = util_signals.detect_support_resistance_sr(latest)
     trend_signals, trend_status = util_signals.detect_trend(log, df)
@@ -85,19 +96,18 @@ def detect_signals(df, symbol):
     adx_signals = util_signals.determine_adx_signal(latest, trend_status)
     wvix_stoch_signals, wvix_stoch_status = util_signals.detect_wvix_stoch_signals(latest)
 
-    # Compile analysis sections with Markdown formatting
-    all_signals.append(util_signals.generate_trend_momentum_message(log, ema_signals, ema_status, ema_cross_flag,
-                                                                    macd_signals, macd_status, adx_signals))
-    all_signals.append(util_signals.generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_signals,
-                                                                        wvix_stoch_signals))
-    all_signals += [trend_signals, util_signals.get_market_sentiment(symbol)]
+    # Compile analysis sections
+    all_signals = [
+        util_signals.generate_trend_momentum_message(log, ema_signals, ema_status, ema_cross_flag,
+                                                     macd_signals, macd_status, adx_signals, price_change=price_change),
+        util_signals.generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_signals,
+                                                         wvix_stoch_signals),
+        trend_signals,
+        util_signals.get_market_sentiment(symbol),
+        util_signals.detect_whale_activity(df, symbol)
+    ]
 
-    # Append whale activity analysis
-    whale_activity_msg = util_signals.detect_whale_activity(df, symbol)
-    log.debug(f"Whale activity for {symbol}: {repr(whale_activity_msg)}")  # Log whale activity for debugging
-    all_signals.append(whale_activity_msg)
-
-    # Determine confirmation states for trading decision
+    # Determine confirmation states
     ema_confirmation = ema_status in ["BUY", "SELL"]
     rsi_confirmation = rsi_status in ["BUY", "SELL"]
     support_resistance_confirmation = sr_status in ["BUY", "SELL"]
@@ -105,26 +115,17 @@ def detect_signals(df, symbol):
     macd_confirmation = macd_status in ["BUY", "SELL"]
     wvix_stoch_confirmation = wvix_stoch_status in ["BUY"]
 
-    # Compute final trading signal
     trade_signal = util_signals.determine_trade_signal(log, ema_confirmation, rsi_confirmation,
                                                        support_resistance_confirmation, breakout_confirmation,
                                                        macd_confirmation, wvix_stoch_confirmation,
                                                        trend_status, latest)
 
-    # Format final decision message with potential double-down recommendation
     FINAL_DECISION_MESSAGE = f"\n🎯 *FINAL DECISION:*\n━━━━━━━━━━━━━━\n{trade_signal['message']}"
     if trade_signal["action"] == "BUY" and util_indicators.evaluate_double_down(trade_signal["action"], trend_status, latest):
         FINAL_DECISION_MESSAGE += "\n*Double down* on BUY signal!"
     all_signals.append(FINAL_DECISION_MESSAGE)
 
-    # Combine all signals into a single alert message
     alert_message = "\n".join(all_signals).strip()
-
-    # Log message details for debugging
-    log.debug(f"Full alert message length: {len(alert_message)} characters")
-    log.debug(f"Full alert message: {repr(alert_message)}")
-
-    # Store individual signal statuses for change detection
     signal_statuses = {
         "ema_status": ema_status,
         "rsi_status": rsi_status,
@@ -134,7 +135,7 @@ def detect_signals(df, symbol):
         "wvix_stoch_status": wvix_stoch_status
     }
 
-    return trade_signal["action"], latest["close"], alert_message, trade_signal, signal_statuses
+    return trade_signal["action"], latest["close"], alert_message, trade_signal, signal_statuses, df
 
 
 async def monitor_crypto(symbols, stop_event):
@@ -150,7 +151,7 @@ async def monitor_crypto(symbols, stop_event):
         - Otherwise, sends alerts only when signal statuses change.
         - Stores messages and charts in Redis for retrieval via 'Read More'.
     """
-    is_first_run = True          # Flag for initial full alert broadcast
+    is_first_run = True  # Flag for initial full alert broadcast
     last_refresh_time = time.time()  # Timestamp of last full refresh
 
     while not stop_event.is_set():
@@ -159,12 +160,14 @@ async def monitor_crypto(symbols, stop_event):
         if (current_time - last_refresh_time) >= REFRESH_INTERVAL:
             is_first_run = True
             last_refresh_time = current_time
-            log.info(f"3-hour refresh triggered at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}. Sending alerts for all symbols.")
+            log.info(
+                f"3-hour refresh triggered at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}. Sending alerts for all symbols.")
 
         for symbol in symbols:
             # Fetch latest market data from Binance
             df = util_gen.fetch_binance_data(symbol)
-            status, price, signals, trade_signals, signal_statuses = detect_signals(df, symbol)
+            # Unpack 6 items including df from detect_signals
+            status, price, signals, trade_signals, signal_statuses, df = detect_signals(df, symbol)
 
             log.info(f"{symbol} - {status} @ {price:.2f}")  # Log current signal status
 
@@ -175,8 +178,8 @@ async def monitor_crypto(symbols, stop_event):
 
             # Determine if an alert should be sent (first run or status change)
             should_send_alert = is_first_run or (
-                prev_statuses is None or
-                any(signal_statuses[key] != prev_statuses.get(key) for key in signal_statuses)
+                    prev_statuses is None or
+                    any(signal_statuses[key] != prev_statuses.get(key) for key in signal_statuses)
             )
 
             if should_send_alert and signals:
@@ -201,7 +204,7 @@ async def monitor_crypto(symbols, stop_event):
                 )
 
                 if SEND_CHAT:
-                    # Generate and store price chart
+                    # Generate and store price chart using the updated df
                     chart_image = util_chart.generate_price_chart(df, symbol)
                     if chart_image is None:
                         log.error(f"Failed to generate chart image for {symbol}")
