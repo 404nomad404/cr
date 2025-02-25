@@ -25,7 +25,7 @@ DERIBIT_URL = "https://www.deribit.com/api/v2/public/"
 BLOCKCHAIN_URL = "https://blockchain.info/"
 COINMETRICS_URL = "https://community-api.coinmetrics.io/v4/"
 BLOCKCHAIR_URL = "https://api.blockchair.com/bitcoin/"
-QUANDL_API_KEY = ""  
+QUANDL_API_KEY = ""  # https://docs.data.nasdaq.com/v1.0/docs/getting-started
 
 # ----------------------------------------------
 # Telegram Configuration
