@@ -24,7 +24,7 @@ def determine_trade_signal(log, ema_confirmation, rsi_confirmation, support_resi
 
     Requires at least 2 buy/sell signals to confirm a trade, factoring in trend strength (ADX) and volume.
     - BUY: 2+ bullish signals + uptrend or WVIX/Stochastic confirmation.
-    - SELL: 2+ bearish signals + downtrend.
+    - SELL: 2+ bearish signals + downtrend, or 1 bearish signal with strong trend momentum.
     - HOLD: Insufficient confirmations or weak trend.
 
     Args:
@@ -36,21 +36,19 @@ def determine_trade_signal(log, ema_confirmation, rsi_confirmation, support_resi
         macd_confirmation (bool): MACD signal.
         wvix_stoch_confirmation (bool): WVIX/Stochastic signal.
         trend_status (str): Current trend (e.g., "Strong Uptrend").
-        latest (pd.Series): Latest data with ADX and volume.
+        latest (pd.Series): Latest data with ADX, volume, and Prev_Close.
 
     Returns:
         dict: {"action": str, "strength": str, "message": str}
-            - action: "BUY", "SELL", or "HOLD".
-            - strength: Signal strength rating.
-            - message: Detailed decision explanation.
     """
     config = settings.TREND_CONFIG[settings.MIN_TREND_STRENGTH]
     adx_threshold = config["ADX_THRESHOLD"]
 
     adx_value = latest.get("ADX", 0)
     high_volume = latest["volume"] > latest["Volume_MA"]
+    price_change = ((latest["close"] - latest.get("Prev_Close", latest["close"])) /
+                    latest.get("Prev_Close", latest["close"])) * 100 if latest.get("Prev_Close") else 0
 
-    # Define valid trends based on config strength
     valid_trends = {
         "Weak": ["Strong Uptrend", "Strong Downtrend", "Moderate Uptrend", "Weak Uptrend", "Moderate Downtrend",
                  "Weak Downtrend"],
@@ -59,57 +57,77 @@ def determine_trade_signal(log, ema_confirmation, rsi_confirmation, support_resi
     }
     adx_trend = trend_status in valid_trends[settings.MIN_TREND_STRENGTH]
 
-    # Count total confirmations
-    confirmations = sum([ema_confirmation, rsi_confirmation, support_resistance_confirmation,
-                         breakout_confirmation, macd_confirmation, wvix_stoch_confirmation])
+    # Count confirmations
+    confirmations = [
+        ("EMA", ema_confirmation),
+        ("RSI", rsi_confirmation),
+        ("S/R", support_resistance_confirmation),
+        ("Breakout", breakout_confirmation),
+        ("MACD", macd_confirmation),
+        ("WVIX/Stoch", wvix_stoch_confirmation)
+    ]
+    buy_count = sum(1 for _, conf in confirmations if conf == "BUY")
+    sell_count = sum(1 for _, conf in confirmations if conf == "SELL")
 
-    # Calculate signal strength
-    strength = calculate_signal_strength(ema_confirmation, rsi_confirmation, support_resistance_confirmation,
-                                         breakout_confirmation, adx_trend, macd_confirmation)
+    log.debug(f"Initial buy_count: {buy_count}, sell_count: {sell_count}, price_change: {price_change:.2f}%, "
+              f"adx_trend: {adx_trend}, high_volume: {high_volume}")
 
-    # Determine trade action with at least 2 confirmations
-    if confirmations >= 2 and (adx_trend or breakout_confirmation or wvix_stoch_confirmation):
-        action = "BUY" if trend_status in ["Strong Uptrend", "Moderate Uptrend",
-                                           "Weak Uptrend"] or wvix_stoch_confirmation else "SELL"
+    # Boost SELL for strong downtrend with momentum
+    if trend_status in ["Strong Downtrend", "Moderate Downtrend"] and adx_value > adx_threshold:
+        sell_count += 1
+        if price_change < -3 and high_volume:
+            sell_count += 1
 
-        if action == "BUY":
-            if wvix_stoch_confirmation:
-                message = "🔥 BUY - Potential Bottom with WVIX/Stochastic Confirmation"
-                if adx_value > adx_threshold and high_volume:
-                    message += " + Strong Uptrend, High Volume & ADX"
-                elif adx_value > adx_threshold:
-                    message += " + Strong ADX"
-                elif high_volume:
-                    message += " + High Volume"
-            elif adx_value > adx_threshold and high_volume:
-                message = "🔥 BUY - Strong Uptrend with High Volume & ADX Confirmation"
-            elif adx_value > adx_threshold:
-                message = "✅ BUY - Uptrend Confirmed with Strong ADX"
-            elif high_volume:
-                message = "📈 BUY - Uptrend Confirmed with High Volume"
-            else:
-                message = "🟡 BUY - Proceed with Caution"
-        else:  # SELL
+    # Boost BUY for strong uptrend with momentum
+    if trend_status in ["Strong Uptrend", "Moderate Uptrend"] and adx_value > adx_threshold:
+        buy_count += 1
+        if price_change > 3 and high_volume:
+            buy_count += 1
+
+    log.debug(f"Adjusted buy_count: {buy_count}, sell_count: {sell_count}")
+
+    # Determine trade action
+    if sell_count >= 2:
+        strength = "Strong" if sell_count >= 3 or adx_value > 30 else "Moderate"
+        if adx_value > adx_threshold and high_volume:
+            message = "🚨 SELL - Strong Downtrend with High Volume & ADX Confirmation"
+        elif adx_value > adx_threshold:
+            message = "❌ SELL - Downtrend Confirmed with Strong ADX"
+        elif high_volume:
+            message = "📉 SELL - Downtrend Confirmed with High Volume"
+        else:
+            message = "SELL - Proceed with Caution"
+        action = "SELL"
+    elif buy_count >= 2 or (wvix_stoch_confirmation and buy_count >= 1):
+        strength = "Strong" if buy_count >= 3 or adx_value > 30 else "Moderate"
+        if wvix_stoch_confirmation:
+            message = "🔥 BUY - Potential Bottom with WVIX/Stochastic Confirmation"
             if adx_value > adx_threshold and high_volume:
-                message = "🚨 SELL - Strong Downtrend with High Volume & ADX Confirmation"
+                message += " + Strong Uptrend, High Volume & ADX"
             elif adx_value > adx_threshold:
-                message = "❌ SELL - Downtrend Confirmed with Strong ADX"
+                message += " + Strong ADX"
             elif high_volume:
-                message = "📉 SELL - Downtrend Confirmed with High Volume"
-            else:
-                message = "SELL - Proceed with Caution"
+                message += " + High Volume"
+        elif adx_value > adx_threshold and high_volume:
+            message = "🔥 BUY - Strong Uptrend with High Volume & ADX Confirmation"
+        elif adx_value > adx_threshold:
+            message = "✅ BUY - Uptrend Confirmed with Strong ADX"
+        elif high_volume:
+            message = "📈 BUY - Uptrend Confirmed with High Volume"
+        else:
+            message = "🟡 BUY - Proceed with Caution"
+        action = "BUY"
     else:
         action = "HOLD"
-        if wvix_stoch_confirmation and confirmations < 2:
+        if wvix_stoch_confirmation:
             message = "⚠️ HOLD → WVIX/Stochastic Bottom Detected but Insufficient Other Confirmations"
-        elif confirmations == 1:
+        elif sell_count == 1 or buy_count == 1:
             message = "⚠️ HOLD → Insufficient confirmation from other indicators"
         elif not adx_trend:
             message = "⚠️ HOLD → Trend not strong enough"
-        elif not breakout_confirmation:
-            message = "⚠️ HOLD → No breakout confirmation – price still within support/resistance range"
         else:
             message = "⚠️ HOLD → No strong confirmation from other indicators"
+        strength = "Weak"
 
     log.info(f"determine_trade_signal: action: {action}, strength: {strength}, message: {message}")
     return {"action": action, "strength": strength, "message": message}
@@ -205,32 +223,24 @@ def detect_ema_crossovers(log, latest, previous):
 
 def detect_support_resistance_sr(latest):
     """
-    Identifies proximity to support or resistance levels to signal potential buy/sell opportunities.
-
-    - Near support: Price ≤ 102% of support level (BUY).
-    - Near resistance: Price ≥ 98% of resistance level (SELL).
-    - Neutral: Price between support and resistance (HOLD).
+    Identifies proximity to support or resistance levels, tying BUY signals to WVIX/Stochastic confirmation.
 
     Args:
         latest (dict): Latest price data with 'close', 'Support', and 'Resistance' values.
 
     Returns:
         tuple: (signals, status)
-            - signals (list): Messages indicating proximity to S/R levels.
-            - status (str): Trade action ("BUY", "SELL", "HOLD").
     """
     signals = []
+    status = "HOLD"
 
-    # Check proximity to support (within 2% above)
     if latest["close"] <= latest["Support"] * 1.02:
-        signals.append(f"🔵 *Price Near Support* ({latest['Support'] * 1.02:.2f}) → Buying Opportunity")
-        status = "BUY"
-    # Check proximity to resistance (within 2% below)
+        signals.append(f"🔵 *Support Zone:* Near {latest['Support'] * 1.02:.2f} - Watching for stabilization.")
+        status = "HOLD"  # Wait for WVIX/Stochastic confirmation
     elif latest["close"] >= latest["Resistance"] * 0.98:
         signals.append(
-            f"🔴 *Price Near Resistance* ({latest['Resistance'] * 0.98:.2f}) → Potential selling pressure ahead!")
+            f"🔴 *Price Near Resistance:* ({latest['Resistance'] * 0.98:.2f}) → Potential selling pressure ahead!")
         status = "SELL"
-    # Neutral zone between support and resistance
     else:
         signals.append("⚪ *Price in Neutral Zone* → No strong support/resistance signals.")
         status = "HOLD"
@@ -408,18 +418,13 @@ def detect_rsi_signals(latest, trend_status):
     """
     Generates RSI-based signals, adjusting thresholds based on trend strength.
 
-    - Strong uptrend: Buy threshold raised to 40.
-    - Strong downtrend: Sell threshold lowered to 60.
-    - Overbought: RSI > 70 (SELL), Oversold: RSI < 30 (BUY).
-
     Args:
         latest (dict): Latest price data with RSI value.
         trend_status (str): Current trend (e.g., "Strong Uptrend").
 
     Returns:
         tuple: (signals, status)
-            - signals (list): RSI condition messages.
-            - status (str): Trade action ("BUY", "SELL", "HOLD").
+    """
     """
     signals = []
     status = "HOLD"
@@ -428,7 +433,6 @@ def detect_rsi_signals(latest, trend_status):
     if rsi_value is None:
         return ["⚠️ *RSI data unavailable*"], status
 
-    # Adjust RSI thresholds dynamically based on trend
     rsi_buy_threshold = 40 if trend_status in ["Strong Uptrend", "Moderate Uptrend"] else 30
     rsi_sell_threshold = 60 if trend_status in ["Strong Downtrend", "Moderate Downtrend"] else 70
 
@@ -439,9 +443,12 @@ def detect_rsi_signals(latest, trend_status):
         signals.append(f"🟢 *RSI {rsi_value:.2f} < {rsi_buy_threshold} → Oversold!* Potential Buy Signal")
         status = "BUY"
     else:
-        signals.append(f"⚪ *RSI {rsi_value:.2f} is neutral* → No strong buy/sell signal")
-
-    return signals, status
+        signals.append(
+            f"⚪ *RSI {rsi_value:.2f}* → {'Nearing oversold' if rsi_value < 35 else 'Neutral'} - No strong buy/sell signal")
+        status = "HOLD"
+    """
+    # return signals, status
+    return [], "HOLD"  # RSI moved to detect_wvix_stoch_signals
 
 
 def get_market_sentiment(symbol):
@@ -518,9 +525,6 @@ def detect_whale_activity(df, symbol="BTCUSDT"):
     """
     Detects whale activity using Binance volume spikes and BTC-specific Blockchair transactions.
 
-    - Volume spikes: Significant increases in trading volume indicate potential whale moves.
-    - Blockchair: Tracks large BTC transactions (>1000 BTC) for accumulation or sell-off.
-
     Args:
         df (pd.DataFrame): Historical OHLCV data.
         symbol (str): Trading pair (e.g., "BTCUSDT").
@@ -531,7 +535,6 @@ def detect_whale_activity(df, symbol="BTCUSDT"):
     config = settings.TREND_CONFIG[settings.MIN_TREND_STRENGTH]
     signals = []
 
-    # Detect volume spikes in recent data
     df["volume_ma"] = df["volume"].rolling(window=20).mean()
     df["volume"] = df["volume"].astype(float)
     df["volume_spike"] = df["volume"] > config["VOLUME_MULTIPLIER"] * df["volume_ma"]
@@ -546,9 +549,8 @@ def detect_whale_activity(df, symbol="BTCUSDT"):
         )
         signals.append(spike_msg)
 
-    base_symbol = symbol[:-4]  # Extract base asset (e.g., "BTC" from "BTCUSDT")
+    base_symbol = symbol[:-4]
 
-    # BTC-specific whale transactions via Blockchair
     if symbol == "BTCUSDT":
         try:
             whale_txns = util_gen.fetch_blockchair_whale_txns(min_value=1000)
@@ -563,26 +565,27 @@ def detect_whale_activity(df, symbol="BTCUSDT"):
         except Exception as e:
             signals.append(f"⚠️ *Blockchair Error for {base_symbol}*: {str(e)}")
 
-    # Binance volume analysis for all symbols
     try:
         binance_vol = util_gen.fetch_binance_volume(symbol=symbol)
         if not binance_vol.empty and len(binance_vol) >= 2:
             latest_vol = binance_vol["volume"].iloc[-1]
             prev_vol = binance_vol["volume"].iloc[-2]
             vol_increase = (latest_vol - prev_vol) / prev_vol * 100 if prev_vol > 0 else 0
-            if vol_increase > 50:  # Threshold for significant whale activity
+            if vol_increase > 50:
                 signals.append(
-                    f"📈 *Significant Volume Increase ({base_symbol})*: {vol_increase:.2f}% from previous day")
-        else:
-            signals.append(f"⚪ No significant volume activity for {base_symbol} *(Binance)*")
+                    f"  • 📈 *Significant Volume Increase ({base_symbol})*: {vol_increase:.2f}% from previous day - Possible whale selling.")
+            elif vol_increase < -50:
+                signals.append(
+                    f"  • 📉 *Significant Volume Drop ({base_symbol})*: {abs(vol_increase):.2f}% from previous day.")
+            else:
+                signals.append(f"  • ⚪ No significant volume activity for {base_symbol} *(Binance)*")
     except Exception as e:
-        signals.append(f"⚠️ *Binance Volume Error for {base_symbol}*: {str(e)}")
+        signals.append(f"  • ⚠️ *Binance Volume Error for {base_symbol}*: {str(e)}")
 
-    # Format final whale activity message
     if not signals:
-        whale_message = f"\n🐋 *Whale Activity ({base_symbol})*: No significant activity detected"
+        whale_message = f"\n  • 🐋 *Whale Activity ({base_symbol})*: No significant activity detected"
     else:
-        whale_message = f"\n🐋 *Whale Activity ({base_symbol}):*\n" + "\n".join(signals)
+        whale_message = f"\n  • 🐋 *Whale Activity ({base_symbol}):*\n" + "\n".join(signals)
 
     return whale_message
 
@@ -712,61 +715,67 @@ def detect_macd_signal(log, df):
 
 
 def generate_trend_momentum_message(log, ema_signals, ema_status, ema_cross_flag, macd_signals, macd_status,
-                                    adx_signals):
+                                    adx_signals, price_change=None):
     """
-    Formats the trend and momentum section of the alert message.
-
-    Combines EMA, MACD, and ADX signals with dynamic icons based on signal strength.
+    Generates a formatted message for trend and momentum signals.
 
     Args:
         log: Logger instance.
-        ema_signals (list): EMA crossover messages.
-        ema_status (str): EMA trade action.
-        ema_cross_flag (bool): Indicates EMA crossover.
-        macd_signals (str): MACD signal message.
-        macd_status (str): MACD trade action.
-        adx_signals (str): ADX strength message.
+        ema_signals (list): EMA crossover signals.
+        ema_status (str): EMA signal status.
+        ema_cross_flag (bool): EMA crossover flag.
+        macd_signals (list or str): MACD signals.
+        macd_status (str): MACD status.
+        adx_signals (list): ADX signals.
+        price_change (float): 24-hour price change percentage.
 
     Returns:
         str: Formatted trend and momentum message.
     """
-    ema_macd_message = "*Trend & Momentum:*\n"
+    formatted_signals = ["📡 *Trend & Momentum:*"]
 
-    if ema_cross_flag:
-        ema_macd_icon = "📈" if ema_status == "BUY" else "📉"
-    elif macd_status in ["BUY", "SELL"]:
-        ema_macd_icon = "📡"
-    elif "momentum shift" in macd_signals.lower():
-        ema_macd_icon = "📡"
-    else:
-        ema_macd_icon = "📊"
+    # Always include price change
+    if price_change is not None:
+        price_movement = (f"📈 *Price Movement:* {price_change:.2f}% in 24h" if price_change >= 0
+                          else f"📉 *Price Movement:* {price_change:.2f}% in 24h")
+        formatted_signals.append(price_movement)
+        log.debug(f"Price movement added to Trend & Momentum: {price_movement}")
 
+    # EMA and MACD summary
     if ema_cross_flag:
-        for signal in ema_signals:
-            ema_macd_message += f"  • {signal}\n"
+        formatted_signals.extend(ema_signals if isinstance(ema_signals, list) else [ema_signals])
+    elif macd_status == "SELL":
+        formatted_signals.append("⚪ No EMA cross, MACD confirms ongoing downtrend.")
+    elif macd_status == "BUY":
+        formatted_signals.append("⚪ No EMA cross, MACD confirms ongoing uptrend.")
     else:
-        if macd_status in ["BUY", "SELL"]:
-            ema_macd_message += f"  • ⚪ No EMA cross detected yet, but MACD signals momentum shift.\n"
+        formatted_signals.append("⚪ No EMA cross or strong MACD signal.")
+
+    # Add MACD details if present
+    if macd_signals and not ema_cross_flag:
+        if isinstance(macd_signals, list):
+            formatted_signals.extend(macd_signals)
         else:
-            ema_macd_message += "  • ⚪ No EMA cross detected. Market is sideways\n"
+            formatted_signals.append(macd_signals)  # Treat as single string
 
-    if macd_status in ["BUY", "SELL"]:
-        ema_macd_message += f"  • {macd_signals}\n"
-    else:
-        ema_macd_message += "  • ⚪ No MACD signal detected.\n"
+    # Add ADX signals
+    if adx_signals:
+        formatted_signals.extend(adx_signals if isinstance(adx_signals, list) else [adx_signals])
 
-    return f"{ema_macd_icon} {ema_macd_message} {adx_signals}"
+    message = "\n  • ".join(formatted_signals)
+    log.debug(f"Trend & Momentum signals: {formatted_signals}")
+    return message
 
 
 def generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_signals, wvix_stoch_signals):
     """
-    Compiles support/resistance, breakout, RSI, and WVIX/Stochastic signals into a single message.
+    Compiles support/resistance, breakout, and WVIX/Stochastic signals into a single message.
 
     Args:
         log: Logger instance.
         breakout_signal (list): Breakout messages.
         sr_signals (list): Support/resistance messages.
-        rsi_signals (list): RSI messages.
+        rsi_signals (list): RSI messages (ignored, RSI now in wvix_stoch_signals).
         wvix_stoch_signals (list): WVIX/Stochastic messages.
 
     Returns:
@@ -775,31 +784,38 @@ def generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_si
     message = "📊 *Support & Resistance*\n"
     all_signals = []
 
-    if breakout_signal:
-        all_signals.append("\n  • ".join(breakout_signal))
-    if sr_signals:
-        all_signals.append("\n".join(sr_signals))
-    if rsi_signals:
-        all_signals.append("\n".join(rsi_signals))
+    def clean_signal(signal):
+        if isinstance(signal, str):
+            return signal.strip().lstrip("  • ").strip()
+        return str(signal)
+
+    # Include breakout and S/R signals
+    for signal_group in [breakout_signal, sr_signals]:
+        if signal_group:
+            if isinstance(signal_group, list):
+                all_signals.extend(clean_signal(s) for s in signal_group if s)
+            else:
+                all_signals.append(clean_signal(signal_group))
+
+    # Add WVIX/Stochastic signals (includes RSI)
     if wvix_stoch_signals:
-        all_signals.append("\n".join(wvix_stoch_signals))
+        all_signals.extend(clean_signal(s) for s in wvix_stoch_signals if s)
 
     if not all_signals:
         message += "  • ⚪ No significant S/R signals detected."
     else:
-        message += "\n  • ".join(all_signals)
+        message += "\n  • " + "\n  • ".join(all_signals)
 
+    log.debug(f"Support & Resistance signals after cleaning: {all_signals}")
     return message
 
 
 def detect_wvix_stoch_signals(latest):
     """
-    Detects potential market bottoms using Williams VIX Fix and Stochastic Oscillator.
-
-    - Buy signal: WVIX below Bollinger Band lower and Stochastic K/D < 20 (oversold).
+    Detects potential market bottoms using Williams VIX Fix, Stochastic Oscillator, and RSI.
 
     Args:
-        latest (pd.Series): Latest data with WVIX and Stochastic values.
+        latest (pd.Series): Latest data with WVIF, Stochastic, and RSI values.
 
     Returns:
         tuple: (signals, status)
@@ -811,19 +827,30 @@ def detect_wvix_stoch_signals(latest):
     wvix_lower = latest.get('WVIF_BB_LOWER')
     fastk = latest.get('fastk')
     fastd = latest.get('fastd')
+    rsi = latest.get('RSI')
+    support = latest.get('Support')
 
-    if pd.isna(wvix_value) or pd.isna(wvix_lower) or pd.isna(fastk) or pd.isna(fastd):
-        signals.append("⚠️ *WVIX/Stochastic data unavailable*")
+    log.debug(f"WVIF: {wvix_value}, WVIF_BB_LOWER: {wvix_lower}, fastk: {fastk}, fastd: {fastd}, RSI: {rsi}")
+
+    if any(pd.isna(x) for x in [wvix_value, wvix_lower, fastk, fastd, rsi]):
+        signals.append("⚠️ *WVIX/Stochastic/RSI data unavailable*")
         return signals, status
 
+    # Bottom detection: RSI < 30, Stochastic K & D < 20, WVIX < BB Lower
+    rsi_oversold = rsi < 30
+    stoch_oversold = fastk < 20 and fastd < 20
     wvix_bottom = wvix_value < wvix_lower
-    stoch_oversold = (fastk < 20) and (fastd < 20)
 
-    if wvix_bottom and stoch_oversold:
-        signals.append(f"🟢 *Potential Bottom* - WVIX {wvix_value:.2f} < BB Lower {wvix_lower:.2f}, "
-                       f"Stochastic K {fastk:.2f} & D {fastd:.2f} < 20")
+    if rsi_oversold and stoch_oversold and wvix_bottom:
+        signals.append(f"🟢 *Bottom Detected!* - RSI {rsi:.2f} < 30, "
+                       f"WVIX {wvix_value:.2f} < BB Lower {wvix_lower:.2f}, "
+                       f"Stochastic K {fastk:.2f} & D {fastd:.2f} < 20 → Buy at ~{support:.2f}")
         status = "BUY"
+    elif rsi_oversold:
+        signals.append(f"🟢 RSI {rsi:.2f} < 30 → Oversold, watching for bottom confirmation.")
+        signals.append(f"⚪ WVIX {wvix_value:.2f} & Stochastic K {fastk:.2f}, D {fastd:.2f} - No bottom yet.")
     else:
-        signals.append(f"⚪ *WVIX {wvix_value:.2f} & Stochastic K {fastk:.2f}, D {fastd:.2f}* - No bottom signal")
+        signals.append(f"⚪ WVIX {wvix_value:.2f} & Stochastic K {fastk:.2f}, D {fastd:.2f} - No bottom signal.")
+        signals.append(f"⚪ RSI {rsi:.2f} → Neutral - No strong buy/sell signal.")
 
     return signals, status
