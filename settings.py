@@ -29,10 +29,10 @@ QUANDL_API_KEY = ""
 
 # ----------------------------------------------
 # Telegram Configuration
-TELEGRAM_BOT_TOKEN = ""
-TELEGRAM_CHAT_ID = ""  # send directly to BOT
+TELEGRAM_BOT_TOKEN = "your_bot_token_here"
+TELEGRAM_CHAT_ID = "your_chat_id_here"  # send directly to BOT
 # TELEGRAM_CHAT_ID = "-12345678910"  # send to GROUP
-BOT_USERNAME = ""  # Name of BOT
+BOT_USERNAME = "YourBotUsername"  # Name of BOT
 SEND_CHAT = True  # send alerts
 MONITOR_SLEEP = (60 * 15)  # 900  # set 900 fifteen minutes
 REFRESH_INTERVAL = (60 * 60) * 3  # 3 hours
