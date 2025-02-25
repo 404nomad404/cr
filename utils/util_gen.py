@@ -147,7 +147,7 @@ def fetch_blockchair_whale_txns(min_value=1000):
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-        log.debug(f"Blockchair response: {data}")
+        # log.debug(f"Blockchair response: {data}")
         if "data" not in data or not data["data"]:
             log.warning("Blockchair response missing 'data' or empty")
             return []
