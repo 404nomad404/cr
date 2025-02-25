@@ -2,9 +2,11 @@
 # 📊 Crypto Monitoring & Alert Bot 🚀  
 
 ## Overview  
-This Python script integrates **Binance API** and **Telegram** to monitor cryptocurrency prices, detect trading signals, and send real-time alerts with price charts. 
+Welcome to the **Crypto Alert Bot**, a powerful Python-based tool designed to monitor cryptocurrency markets in real-time and deliver actionable trading signals directly to your Telegram chat. Whether you're a seasoned trader or just starting out, this bot leverages advanced technical indicators and whale activity detection to help you stay ahead of market trends. Built with flexibility and reliability in mind, it integrates seamlessly with Binance for market data, Redis for persistent storage, and Telegram for instant notifications.
 
-It helps traders identify **EMA crossovers, RSI signals, and trend strength** to make informed trading decisions.  
+Perfect for enthusiasts and developers alike, this bot combines robust signal analysis with an intuitive alert system—complete with price charts and detailed breakdowns. 
+
+Ready to take your crypto trading to the next level? Let’s dive in!
 
 ## 🔥 Features  
 
@@ -76,7 +78,7 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 
 6. **Market Sentiment & Volume Analysis:**
 	- Funding Rate Sentiment: Gauges long/short trader bias from Binance funding rates.
- 	- Whale Activity Detection: Tracks abnormal volume movements to detect large trades.
+ 	- Whale Activity Detection: Tracks abnormal volume movements to detect large trades. Identifies potential whale moves using Binance volume spikes and Bitcoin-specific Blockchair transaction data.
 
  
 ### 📡 **Automated Real-Time Alerts via Telegram**
@@ -89,18 +91,27 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 - Uses **error handling** to prevent failures when sending messages.  
 - Monitors multiple cryptocurrencies simultaneously.
 
-### ✅ Confirmation-Based Trade Decision:
-- At least two indicators must confirm a BUY/SELL before making a decision.
+### ⚖️ Confirmation-Based Trade Decision:
+- Determines final BUY, SELL, or HOLD signals with at least 2 aligned indicators, factoring in trend strength and volume to minimize false positives.
 - Trend Strength & Volume Filtering: Avoids weak/ranging market conditions.
-  
-## 🚀 How It Works  
-1. Fetches **live price data** from Binance API every 15 minutes.  
-2. Computes **technical indicators.  
-3. Detects **buy/sell signals** based on indicator crossovers & trend confirmation.  
-4. Sends **real-time alerts to Telegram** with charts.
-5. 🎯 Final Trading Decision Logic:
-   
 
+### 🗄️ Redis Storage:
+- Persistently stores messages, charts, and signal states with configurable TTL for efficient retrieval.
+
+### 🔧 Customizable:
+- Easily tweak settings like trend strength, monitoring intervals, and symbol lists via `settings.py`.
+  
+  
+## 🔍 How It Works  
+1. **Data Fetching**: Pulls real-time OHLCV data from Binance for configured symbols (e.g., BTC/USDT, WLD/USDT). 
+2. **Indicator Calculation**: Computes technical indicators like EMAs, RSI, MACD, and ADX using the `util_indicators` module.  
+3. **Signal Detection**: Analyzes indicators and whale activity via `util_signals` to generate individual signals (e.g., EMA crossovers, volume spikes). 
+4. **Decision Logic**: Uses a confirmation-based strategy in `determine_trade_signal()`:
+   - Requires at least 2 BUY or SELL signals to confirm a trade.
+   - Incorporates ADX trend strength and volume to filter out noise.
+   - Outputs a final status: BUY, SELL, or HOLD.
+   - 🎯 Trading Decision Logic:
+   
 | Market Condition                                   | Decision                                                      |
 |----------------------------------------------------|-------------------------------------------------------------|
 | **Strong Uptrend, ADX > 25, High Volume**         | 🔥 **BUY** - Strong Uptrend with High Volume & ADX Confirmation |
@@ -111,67 +122,108 @@ It helps traders identify **EMA crossovers, RSI signals, and trend strength** to
 | **Weak Downtrend, High Volume**                   | 📉 **SELL** - Downtrend Confirmed with High Volume          |
 | **Weak Trend, ADX < 20**                          | ⚠️ **HOLD** - Weak Trend, Low ADX (No Strong Signal)       |
 
+5. **Alert Delivery**:
+   - Posts a short summary to your Telegram group with current price and status.
+   - Stores detailed analysis and charts in Redis, accessible via a "Read More" button.
+6. **Scheduling**: Refreshes all symbols every 3 hours, with interim alerts triggered only on signal changes.
+
 	- BUY: When at least 2 BUY signals align, with a strong uptrend & high volume.
  	- SELL: When at least 2 SELL signals align, with a strong downtrend & high volume.
   	- HOLD: If the market is weak (ADX < 20) or signals are unclear.
-7. The system ensures alerts are only sent when new conditions appear to prevent redundant notifications.
 
-## 📂 **Setup Instructions**  
-1. Install dependencies:  
-   ```bash
-   pip install -r requirements.txt
-2.  To create a Telegram bot token
-    - Open the Telegram app
-    - Search for "@BotFather"
-    - Start a chat with BotFather
-    - Type /newbot
-    - Follow the instructions to name and username your bot
-    - BotFather will send you a unique API token
-3. To create a chat ID
-    - Create a new chat group
-    - Add your bot to the group
-    - Go to Telegram Web and log in to your account
-    - Select the group chat
-    - The chat ID (numbers/digits) is in the URL in the address bar
-4.  Set up Telegram Bot in `settings.py`
-   ```python
-# settings.py
-
-# 🔹 Telegram Bot Configuration
-TELEGRAM_BOT_TOKEN = "your_bot_token"  # Replace with your Telegram Bot Token
-TELEGRAM_CHAT_ID = "your_chat_id"  # Replace with your Telegram Chat ID
-
-# 🔹 List of Cryptos to Monitor
-SYMBOLS = ["BTCUSDT", "ETHUSDT", "BNBUSDT"]  # Add more symbols
-```
-	
-
-5. **Run the BOT**
-Once everything is set up, run the script using:
-
-```bash
-python crypto_alert_bot.py
-```
-
-📌 Example Telegram Alert:
-
-	✅ Sends detailed Telegram alerts including price, trend, and reasoning
-
-	✅ Attaches a small trend chart
-
-	✅ Helps visualize price movement before making decisions.
+The result? Clear, actionable insights delivered straight to your Telegram, like this:
 
    <a href="https://ibb.co/tTqSP2N6"><img src="https://i.ibb.co/W4kQpzdX/SCR-20250217-lhfk.png" alt="SCR-20250217-lhfk" border="0"></a>
    - ChapGPT analysis: https://app.simplenote.com/p/X1ycfv
    - DeepSeek analysis: https://app.simplenote.com/p/S8VJN0
    - Grok analysis: https://app.simplenote.com/p/Nfv3kR
    - Google Gemini: http://simp.ly/p/GhhThM
-      
-   View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a> (version 11)
-   
 
+     View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a> (version 13)
 
-## 📌 How to Run the backtest script
+## 📂 **Setup Instructions**  
+Follow these steps to get the Crypto Alert Bot up and running on your system. You’ll need Python, Redis, and a Telegram bot configured.
+
+### Prerequisites
+- **Python 3.8+**: Ensure Python is installed (`python --version`).
+- **Redis Server**: For message and chart storage.
+- **Telegram Bot**: For alerts and notifications.
+- **Git**: To clone the repository.
+
+### Step 1: Clone the Repository
+   ```bash
+	git clone https://github.com/ishafizan/crypto-alert-bot.git
+	cd crypto-alert-bot
+```
+
+### Step 2: Install dependencies:  
+   ```bash
+   pip install -r requirements.txt
+```
+### Step 3: Set Up Redis
+1. Install Redis:
+- On Ubuntu: sudo apt update && sudo apt install redis-server
+- On macOS: brew install redis
+- On Windows: Use WSL or a Redis Docker container (docker run -d -p 6379:6379 redis).
+	- https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/install-redis-on-windows/
+2. Start Redis:
+  ```bash
+  redis-server
+  ```
+Ensure it’s running on localhost:6379 (default). Test with redis-cli ping (should return "PONG").
+
+### Step 4: Configure Telegram Bot
+1.  To create a Telegram bot token
+    - Open the Telegram app
+    - Search for "@BotFather"
+    - Start a chat with BotFather
+    - Type /newbot
+    - Follow the instructions to name and username your bot
+    - BotFather will send you a unique API token
+2. To create a chat ID
+    - Create a new chat group
+    - Add your bot to the group
+    - Go to Telegram Web and log in to your account
+    - Select the group chat
+    - The chat ID (numbers/digits) is in the URL in the address bar
+
+### Step 5: Configure Telegram Bot
+
+Edit settings.py with your details:
+   ```python
+# settings.py
+TELEGRAM_BOT_TOKEN = "your_bot_token_here"  # From BotFather
+TELEGRAM_CHAT_ID = "your_chat_id_here"     # Group chat ID
+SEND_CHAT = True                           # Enable Telegram alerts
+BOT_USERNAME = "YourBotUsername"           # Bot's Telegram username
+SYMBOLS = ["BTCUSDT", "ETHUSDT", "WLDUSDT"] # Symbols to monitor
+REDIS_HOST = "localhost"
+REDIS_PORT = 6379
+REDIS_DB = 0
+MESSAGE_TTL = 3600  # Message lifespan in seconds (1 hour)
+MONITOR_SLEEP = 300  # Check interval in seconds (5 minutes)
+MIN_TREND_STRENGTH = "Moderate"  # Options: "Weak", "Moderate", "Strong"
+TREND_CONFIG = {
+    "Weak": {"EMA_PERIODS": [9, 21, 50], "ADX_THRESHOLD": 20, "BREAKOUT_PERCENTAGE": 0.01, "VOLUME_MULTIPLIER": 2.5, "ATR_MULTIPLIER": 1.5, "RSI_PERIOD": 14},
+    "Moderate": {"EMA_PERIODS": [9, 21, 50, 100], "ADX_THRESHOLD": 25, "BREAKOUT_PERCENTAGE": 0.015, "VOLUME_MULTIPLIER": 2.0, "ATR_MULTIPLIER": 2.0, "RSI_PERIOD": 14},
+    "Strong": {"EMA_PERIODS": [9, 21, 50, 100, 200], "ADX_THRESHOLD": 30, "BREAKOUT_PERCENTAGE": 0.02, "VOLUME_MULTIPLIER": 1.5, "ATR_MULTIPLIER": 2.5, "RSI_PERIOD": 14}
+}
+CLEAR_REDIS_ON_SHUTDOWN = True
+```
+	
+## 📂 How To Run
+1. Start Redis: Ensure Redis is running (redis-server in a separate terminal).
+2. **Run the BOT**
+```bash
+python crypto_alert_bot.py
+```
+3. Monitor Alerts:
+
+- Check your Telegram group for initial alerts.
+- Click "Read More" to view detailed analysis in a private chat with your bot.
+- Stop the Bot: Press Ctrl+C to gracefully shut down (clears Redis if configured).
+
+# 📌 How to Run the backtest script
 
 🚀 Enhancements Added
 - ✅ Fetches historical data from Binance
@@ -229,13 +281,13 @@ Examples:
 - Add automatic order execution to buy/sell directly on Binance. 
 - Can do if there's a safe sandbox i can play around. Do it manually-lah for now, jgn malas 😂
 
-## 📌 FUTURE BOT IDEAS
+## 📌 Others
 
 1. **Trade Confidence & Signal Strength**
 
-	✅ Signal Strength Meter – Assign confidence levels to signals (e.g., weak/medium/strong) based on multiple confirmations. (Done)
+	✅ Signal Strength Meter – Assign confidence levels to signals (e.g., weak/medium/strong) based on multiple confirmations. 
 
-	✅ Trend Score – Score from 1 to 100 based on EMAs, RSI, and momentum. Helps gauge bullish/bearish strength. (Done)
+	✅ Trend Score – Score from 1 to 100 based on EMAs, RSI, and momentum. Helps gauge bullish/bearish strength. 
 
 | Trend Score | Message                                      |
 |------------|----------------------------------------------|
@@ -248,7 +300,7 @@ Examples:
 
 3. **Additional Market Insights**
 
-	✅ Volume Analysis – Identify spikes in buying/selling volume to confirm trend strength. (Done)
+	✅ Volume Analysis – Identify spikes in buying/selling volume to confirm trend strength. 
 
 		Compute Volume Moving Average (20-period)
 			•	EMA7 & EMA21 → Confirms short-term momentum shifts.
@@ -257,7 +309,7 @@ Examples:
 
 	✅ Volatility Indicator – Show if the market is trending or ranging to avoid fakeouts.
 
-	✅ MACD Indicator – Add another confirmation layer to trend shifts. (Done)
+	✅ MACD Indicator – Add another confirmation layer to trend shifts. 
 
 | Indicator        | Signal Mechanism                          | How It Relates |
 |-----------------|-----------------------------------------|---------------|
@@ -266,54 +318,6 @@ Examples:
 | **Signal Line** | 9-period EMA of MACD Line | Helps filter out false signals. |
 | **MACD Histogram** | MACD Line - Signal Line | Highlights strength and confirmation of the trend. |
 
-
-5. **Improved Alerts & Decision Support**
-
-	✅ Risk/Reward Estimation – Suggest optimal entry price, stop-loss, and take-profit levels. (*KIV*)
-
-		Issues:
-   			1. If there are no EMA crossovers, ATR-based stop-loss/take-profit might not be triggered
-			2. If the price is too far from past signals, they get discarded
-   			3. Entry Price is Too Different from Current Price
-   			4. Some signals might not have valid ATR-based stop-loss/take-profit calculations, causing them to be ignored.
-
-	✅ Support/Resistance Breakout Detection – Alert when price breaks past key levels instead of just touching them. (Done)
-
-		Why is Breakout Detection Important?
-
-			1.	Prevents False Signals – Many times, the price tests a support/resistance level but reverses quickly. A proper breakout confirmation helps you avoid fakeouts.
-			2.	Stronger Trend Confirmation – When price breaks a key level with volume and momentum, it often signals a strong trend continuation or reversal.
-			3.	Better Trade Timing – Waiting for a confirmed breakout can help enter trades at the right time instead of getting caught in a range.
-
-	✅ Whale Activity Alert – Detect unusual buy/sell volume spikes indicating large trader moves. (Done)
-
-		- Whales buy before big rallies & sell before crashes. Detecting their activity gives you a head start on potential price swings.
-		- Low-volume breakouts are often fakeouts—whales may trap retail traders before dumping
-
-	✅ Market Sentiment Check – Integrate data from sources like Binance funding rates to gauge trader sentiment. (Done)
-
-		1. Improve Buy/Sell Timing
-   			- If RSI is oversold but funding rates remain negative, the downtrend might continue.
-   			- If EMA crossovers suggest a buy, but funding rates are highly negative, waiting for sentiment improvement can reduce false trades.
-   			- Avoiding Traps – Extreme funding rates may indicate overleveraged positions, leading to potential liquidations and reversals
-   
-   		2.	Filter False Breakouts
-   			- A breakout with negative funding rates might be a short squeeze, indicating a potential reversal
-   
-   		3. Identify Bullish vs. Bearish Sentiment
-			- Positive funding rates → More demand for long positions → Bullish sentiment
-			- Negative funding rates → More demand for short positions → Bearish sentiment
-   
-		4. Understanding Market Bias
-   			– Positive funding rates indicate long dominance (bullish sentiment), while negative rates suggest short dominance (bearish sentiment).
-   			- If buy signals align with positive sentiment (longs paying shorts), it adds confluence to decisions made.
-     	
-
-6. User Customization
-
-	✅ Adjustable Thresholds – Allow you to tweak RSI, EMA crossovers, and risk levels dynamically.
-
-	✅ Multi-Crypto Filtering – Rank and sort monitored cryptos based on trend strength.
 
 
 # Disclaimer
