@@ -80,6 +80,13 @@ Ready to take your crypto trading to the next level? Let’s dive in!
 	- Funding Rate Sentiment: Gauges long/short trader bias from Binance funding rates.
  	- Whale Activity Detection: Tracks abnormal volume movements to detect large trades. Identifies potential whale moves using Binance volume spikes and Bitcoin-specific Blockchair transaction data.
 
+7. **Williams VIX Fix (WVIX) for Bottom Detection:**
+	- Identifies potential market bottoms using WVIX alongside Stochastic Oscillator and RSI.
+ 	- When conditions align (RSI < 30, Stochastic K & D < 20, WVIX below its Bollinger Band lower), it flags a "BUY" signal with a special alert, spotlighting reversal opportunities even in persistent trends.
+
+8. **Smoothed Heikin Ashi (SHA) Signals**:
+	- Enhances trend detection with SHA candles, triggering "BUY" or "SELL" signals on reversals confirmed by volume spikes. Integrated into the confirmation strategy, SHA boosts decision-making precision in choppy markets.
+
  
 ### 📡 **Automated Real-Time Alerts via Telegram**
 - Sends **clear and meaningful** alerts in **Markdown format**.  
