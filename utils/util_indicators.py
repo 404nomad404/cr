@@ -30,6 +30,7 @@ def calculate_indicators(df):
     - WVIX: Williams VIX Fix for market bottom detection.
     - Stochastic: Oscillator for overbought/oversold conditions.
     - Institutional: Open interest data if available.
+    - Smoothed Heikin Ashi for trading signals.
 
     Args:
         df (pd.DataFrame): Historical OHLCV data.
@@ -41,7 +42,7 @@ def calculate_indicators(df):
 
     # Calculate EMAs for trend analysis
     for period in config["EMA_PERIODS"]:
-        df[f"EMA{period}"] = df["close"].ewm(span=period, adjust=False).mean()
+        df[f"EMA{period}"] = calculate_ema(df, period, column="close")
 
     # Momentum indicator: RSI
     df["RSI"] = calculate_rsi(df["close"], period=config['RSI_PERIOD'])
@@ -66,11 +67,12 @@ def calculate_indicators(df):
     df = williams_vix_fix(df)
     df = calculate_stochastic(df)
     df = calculate_institutional_indicators(df)
+    df = calculate_smoothed_heikin_ashi(df)
 
     return df
 
 
-def calculate_ema(df, span):
+def calculate_ema(df, span, column="close"):
     """
     Calculates Exponential Moving Average for a given period.
 
@@ -81,7 +83,7 @@ def calculate_ema(df, span):
     Returns:
         pd.Series: EMA values.
     """
-    return df["close"].ewm(span=span, adjust=False).mean()
+    return df[column].ewm(span=span, adjust=False).mean()
 
 
 def calculate_rsi(series, period=14):
@@ -408,4 +410,28 @@ def calculate_institutional_indicators(df):
         df["CME_Open_Interest"] = oi
     except Exception as e:
         log.warning(f"Failed to fetch OI: {e}")
+    return df
+
+
+def calculate_smoothed_heikin_ashi(df, smoothing_period=None):
+    """
+    Calculate Smoothed Heikin Ashi candles with configurable smoothing period.
+    """
+    if smoothing_period is None:
+        smoothing_period = settings.TREND_CONFIG[settings.MIN_TREND_STRENGTH]["SHA_SMOOTHING_PERIOD"]
+
+    # Standard HA
+    df['HA_Close'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
+    df['HA_Open'] = df['HA_Close'].shift(1).fillna(df['open'])
+    for i in range(1, len(df)):
+        df.loc[df.index[i], 'HA_Open'] = (df['HA_Open'].iloc[i-1] + df['HA_Close'].iloc[i-1]) / 2
+    df['HA_High'] = df[['high', 'HA_Open', 'HA_Close']].max(axis=1)
+    df['HA_Low'] = df[['low', 'HA_Open', 'HA_Close']].min(axis=1)
+
+    # Smooth with EMA
+    df['SHA_Open'] = calculate_ema(df, smoothing_period, column='HA_Open')
+    df['SHA_Close'] = calculate_ema(df, smoothing_period, column='HA_Close')
+    df['SHA_High'] = df[['high', 'SHA_Open', 'SHA_Close']].max(axis=1)
+    df['SHA_Low'] = df[['low', 'SHA_Open', 'SHA_Close']].min(axis=1)
+
     return df
