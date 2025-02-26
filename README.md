@@ -134,12 +134,13 @@ Ready to take your crypto trading to the next level? Let’s dive in!
 The result? Clear, actionable insights delivered straight to your Telegram, like this:
 
    <a href="https://ibb.co/1Jt9s6Y3"><img src="https://i.ibb.co/2Y1j8N0w/SCR-20250226-qgks.png" alt="SCR-20250226-qgks" border="0"></a>
+   <a href="https://ibb.co/WvshqXng"><img src="https://i.ibb.co/N27vQqxZ/SCR-20250226-qbwm.png" alt="SCR-20250226-qbwm" border="0"></a>
    - Grok analysis: http://simp.ly/p/BGzWFd
    - ChapGPT analysis: http://simp.ly/p/CyLxgj
    - DeepSeek analysis: http://simp.ly/p/rMswJt
    
 
-     View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a> (version 13)
+     View the bot in action at <a href="https://t.me/+QOVsy-podHJhN2M9">Telegram</a>
 
 ## 📂 **Setup Instructions**  
 Follow these steps to get the Crypto Alert Bot up and running on your system. You’ll need Python, Redis, and a Telegram bot configured.
