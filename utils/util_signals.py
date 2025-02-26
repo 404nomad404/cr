@@ -18,7 +18,10 @@ log = logger()
 
 def determine_trade_signal(log, ema_confirmation, rsi_confirmation, support_resistance_confirmation,
                            breakout_confirmation, macd_confirmation, wvix_stoch_confirmation,
-                           trend_status, latest):
+                           trend_status, latest, sha_confirmation=None):
+    """
+    Determines final trade signal with SHA boosting BUY/SELL counts.
+    """
     config = settings.TREND_CONFIG[settings.MIN_TREND_STRENGTH]
     adx_threshold = config["ADX_THRESHOLD"]
 
@@ -41,27 +44,35 @@ def determine_trade_signal(log, ema_confirmation, rsi_confirmation, support_resi
         ("S/R", support_resistance_confirmation, "BUY" if support_resistance_confirmation else None),
         ("Breakout", breakout_confirmation, "BUY" if breakout_confirmation else None),
         ("MACD", macd_confirmation, "SELL" if macd_confirmation else None),
-        ("WVIX/Stoch", wvix_stoch_confirmation, "BUY" if wvix_stoch_confirmation else None)
+        ("WVIX/Stoch", wvix_stoch_confirmation, "BUY" if wvix_stoch_confirmation else None),
+        ("SHA", sha_confirmation, sha_confirmation)
     ]
     buy_count = sum(1 for _, conf, direction in confirmations if conf and direction == "BUY")
     sell_count = sum(1 for _, conf, direction in confirmations if conf and direction == "SELL")
 
-    log.info(f"Initial buy_count: {buy_count}, sell_count: {sell_count}, price_change: {price_change:.2f}%, "
-             f"adx_trend: {adx_trend}, high_volume: {high_volume}")
+    """log.info(f"Initial buy_count: {buy_count}, sell_count: {sell_count}, price_change: {price_change:.2f}%, "
+             f"adx_trend: {adx_trend}, high_volume: {high_volume}")"""
 
-    # Boost SELL only for downtrends
+    # Boost SELL for downtrends
     if macd_confirmation and trend_status in ["Strong Downtrend", "Moderate Downtrend"] and adx_value > adx_threshold:
         sell_count += 1
         if price_change < -3 and high_volume:
             sell_count += 1
+    if sha_confirmation == "SELL" and trend_status in ["Strong Downtrend",
+                                                       "Moderate Downtrend"] and adx_value > adx_threshold:
+        sell_count += 1  # SHA SELL boost
 
-    # Boost BUY only for uptrends
-    if wvix_stoch_confirmation and trend_status in ["Strong Uptrend", "Moderate Uptrend"] and adx_value > adx_threshold:
+    # Boost BUY for uptrends
+    if (wvix_stoch_confirmation or sha_confirmation == "BUY") and trend_status in ["Strong Uptrend",
+                                                                                   "Moderate Uptrend"] and adx_value > adx_threshold:
         buy_count += 1
         if price_change > 3 and high_volume:
             buy_count += 1
+    if sha_confirmation == "BUY" and trend_status in ["Strong Uptrend",
+                                                      "Moderate Uptrend"] and adx_value > adx_threshold:
+        buy_count += 1  # SHA BUY boost
 
-    log.info(f"Adjusted buy_count: {buy_count}, sell_count: {sell_count}")
+    """log.info(f"Adjusted buy_count: {buy_count}, sell_count: {sell_count}")"""
 
     if sell_count >= 2:
         strength = "Strong" if sell_count >= 3 or adx_value > 30 else "Moderate"
@@ -76,20 +87,14 @@ def determine_trade_signal(log, ema_confirmation, rsi_confirmation, support_resi
         strength = "Strong" if buy_count >= 3 or adx_value > 30 else "Moderate"
         if wvix_stoch_confirmation:
             message = "🔥 BUY - Potential Bottom with WVIX/Stochastic Confirmation"
-            if adx_value > adx_threshold and high_volume:
-                message += " + Strong Uptrend, High Volume & ADX"
-            elif adx_value > adx_threshold:
-                message += " + Strong ADX"
-            elif high_volume:
-                message += " + High Volume"
-        elif adx_value > adx_threshold and high_volume:
-            message = "🔥 BUY - Strong Uptrend with High Volume & ADX Confirmation"
-        elif adx_value > adx_threshold:
-            message = "✅ BUY - Uptrend Confirmed with Strong ADX"
-        elif high_volume:
-            message = "📈 BUY - Uptrend Confirmed with High Volume"
         else:
-            message = "🟡 BUY - Proceed with Caution"
+            message = "✅ BUY - Uptrend Confirmed with Strong ADX"
+        if adx_value > adx_threshold and high_volume:
+            message += " + Strong Uptrend, High Volume & ADX"
+        elif adx_value > adx_threshold:
+            message += " + Strong ADX"
+        elif high_volume:
+            message += " + High Volume"
         action = "BUY"
     else:
         action = "HOLD"
@@ -734,7 +739,7 @@ def generate_trend_momentum_message(log, ema_signals, ema_status, ema_cross_flag
         price_movement = (f"📈 *Price Movement:* {price_change:.2f}% in 24h" if price_change >= 0
                           else f"📉 *Price Movement:* {price_change:.2f}% in 24h")
         formatted_signals.append(price_movement)
-        log.debug(f"Price movement added to Trend & Momentum: {price_movement}")
+        log.info(f"Price movement added to Trend & Momentum: {price_movement}")
 
     # EMA and MACD summary
     if ema_cross_flag:
@@ -762,9 +767,9 @@ def generate_trend_momentum_message(log, ema_signals, ema_status, ema_cross_flag
     return message
 
 
-def generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_signals, wvix_stoch_signals):
+def generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_signals, wvix_stoch_signals, sha_signals):
     """
-    Compiles support/resistance, breakout, and WVIX/Stochastic signals into a single message.
+    Compiles support/resistance, breakout, WVIX/Stochastic, and SHA signals into a single message.
 
     Args:
         log: Logger instance.
@@ -772,6 +777,7 @@ def generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_si
         sr_signals (list): Support/resistance messages.
         rsi_signals (list): RSI messages (ignored, RSI now in wvix_stoch_signals).
         wvix_stoch_signals (list): WVIX/Stochastic messages.
+        sha_signals (str): Smoothed Heikin Ashi signal message.
 
     Returns:
         str: Formatted S/R section message.
@@ -784,24 +790,20 @@ def generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_si
             return signal.strip().lstrip("  • ").strip()
         return str(signal)
 
-    # Include breakout and S/R signals
-    for signal_group in [breakout_signal, sr_signals]:
+    # Include breakout, S/R, WVIX/Stochastic, and SHA signals
+    for signal_group in [breakout_signal, sr_signals, wvix_stoch_signals, [sha_signals]]:
         if signal_group:
             if isinstance(signal_group, list):
                 all_signals.extend(clean_signal(s) for s in signal_group if s)
             else:
                 all_signals.append(clean_signal(signal_group))
 
-    # Add WVIX/Stochastic signals (includes RSI)
-    if wvix_stoch_signals:
-        all_signals.extend(clean_signal(s) for s in wvix_stoch_signals if s)
-
     if not all_signals:
         message += "  • ⚪ No significant S/R signals detected."
     else:
         message += "\n  • " + "\n  • ".join(all_signals)
 
-    log.debug(f"Support & Resistance signals after cleaning: {all_signals}")
+    # log.info(f"Support & Resistance signals after cleaning: {all_signals}")
     return message
 
 
@@ -826,7 +828,7 @@ def detect_wvix_stoch_signals(latest):
     rsi = latest.get('RSI')
     support = latest.get('Support')
 
-    log.debug(f"WVIF: {wvix_value}, WVIF_BB_LOWER: {wvix_lower}, fastk: {fastk}, fastd: {fastd}, RSI: {rsi}")
+    log.info(f"WVIF: {wvix_value}, WVIF_BB_LOWER: {wvix_lower}, fastk: {fastk}, fastd: {fastd}, RSI: {rsi}")
 
     if any(pd.isna(x) for x in [wvix_value, wvix_lower, fastk, fastd, rsi]):
         signals.append("⚠️ *WVIX/Stochastic/RSI data unavailable*")
@@ -850,4 +852,46 @@ def detect_wvix_stoch_signals(latest):
         signals.append(f"⚪ WVIX {wvix_value:.2f} & Stochastic K {fastk:.2f}, D {fastd:.2f} - No bottom signal.")
         signals.append(f"⚪ RSI {rsi:.2f} → Neutral - No strong buy/sell signal.")
 
+    return signals, status
+
+
+def detect_sha_signals(log, df):
+    """
+    Detect BUY/SELL signals from Smoothed Heikin Ashi with volume-tied reversals.
+    """
+    latest = df.iloc[-1]
+    prev = df.iloc[-2] if len(df) > 1 else latest
+
+    is_green = latest['SHA_Close'] > latest['SHA_Open']
+    is_red = latest['SHA_Close'] < latest['SHA_Open']
+    no_lower_shadow = latest['SHA_Low'] >= latest['SHA_Open']
+    no_upper_shadow = latest['SHA_High'] <= latest['SHA_Open']
+
+    prev_is_green = prev['SHA_Close'] > prev['SHA_Open']
+    prev_is_red = prev['SHA_Close'] < prev['SHA_Open']
+
+    # Volume check
+    curr_volume = latest['volume']
+    prev_volume = prev['volume']
+    volume_increase = curr_volume > prev_volume
+
+    """log.info(f"SHA Values: SHA_Open={latest['SHA_Open']:.2f}, SHA_Close={latest['SHA_Close']:.2f}, "
+             f"SHA_High={latest['SHA_High']:.2f}, SHA_Low={latest['SHA_Low']:.2f}, "
+             f"Prev_SHA_Open={prev['SHA_Open']:.2f}, Prev_SHA_Close={prev['SHA_Close']:.2f}, "
+             f"Volume={curr_volume:.2f}, Prev_Volume={prev_volume:.2f}")
+    """
+    if is_green and no_lower_shadow and prev_is_red and volume_increase:
+        signals = "📈 Smoothed Heikin Ashi Green Candle - Bullish reversal after downtrend with volume increase."
+        status = "BUY"
+    elif is_red and no_upper_shadow and prev_is_green and volume_increase:
+        signals = "📉 Smoothed Heikin Ashi Red Candle - Bearish reversal after uptrend with volume increase."
+        status = "SELL"
+    elif is_red and no_upper_shadow:  # Continuation bearish
+        signals = "📉 Smoothed Heikin Ashi Red Candle - Bearish signal."
+        status = "SELL"
+    else:
+        signals = "⚪ Smoothed Heikin Ashi - No clear trend change."
+        status = "HOLD"  # Changed from None
+
+    log.info(f"SHA: signals={signals}, status={status}")
     return signals, status
