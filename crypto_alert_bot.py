@@ -96,6 +96,11 @@ def detect_signals(df, symbol):
     adx_signals = util_signals.determine_adx_signal(latest, trend_status)
     wvix_stoch_signals, wvix_stoch_status = util_signals.detect_wvix_stoch_signals(latest)
 
+    # Debug adx
+    log.info(f"ADX: signals={adx_signals}")
+    # Debug MACD
+    log.info(f"MACD: signals={macd_signals}, status={macd_status}")
+
     # Compile analysis sections
     all_signals = [
         util_signals.generate_trend_momentum_message(log, ema_signals, ema_status, ema_cross_flag,
@@ -114,6 +119,8 @@ def detect_signals(df, symbol):
     breakout_confirmation = breakout_status in ["BUY", "SELL"]
     macd_confirmation = macd_status in ["BUY", "SELL"]
     wvix_stoch_confirmation = wvix_stoch_status in ["BUY"]
+    log.info(f"Confirmations: EMA={ema_confirmation}, RSI={rsi_confirmation}, SR={support_resistance_confirmation}, "
+             f"Breakout={breakout_confirmation}, MACD={macd_confirmation}, WVIX/Stoch={wvix_stoch_confirmation}")
 
     trade_signal = util_signals.determine_trade_signal(log, ema_confirmation, rsi_confirmation,
                                                        support_resistance_confirmation, breakout_confirmation,
@@ -121,11 +128,14 @@ def detect_signals(df, symbol):
                                                        trend_status, latest)
 
     FINAL_DECISION_MESSAGE = f"\n🎯 *FINAL DECISION:*\n━━━━━━━━━━━━━━\n{trade_signal['message']}"
-    if trade_signal["action"] == "BUY" and util_indicators.evaluate_double_down(trade_signal["action"], trend_status, latest):
+    if trade_signal["action"] == "BUY" and util_indicators.evaluate_double_down(trade_signal["action"], trend_status,
+                                                                                latest):
         FINAL_DECISION_MESSAGE += "\n*Double down* on BUY signal!"
     all_signals.append(FINAL_DECISION_MESSAGE)
 
-    alert_message = "\n".join(all_signals).strip()
+    # alert_message = "\n".join(all_signals).strip()
+    alert_message = "\n".join(all_signals)
+
     signal_statuses = {
         "ema_status": ema_status,
         "rsi_status": rsi_status,
