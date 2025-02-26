@@ -51,7 +51,7 @@ redis_client = redis.Redis(
 )
 
 # Monitoring Configuration
-REFRESH_INTERVAL = settings.MESSAGE_TTL  # refresh interval in seconds for full symbol updates
+REFRESH_INTERVAL = settings.REFRESH_INTERVAL  # refresh interval in seconds for full symbol updates
 
 
 def detect_signals(df, symbol):
