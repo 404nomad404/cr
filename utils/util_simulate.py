@@ -1,16 +1,23 @@
 import redis
 import pickle
 
+# Simulate status change by changing values in redis
+# TIP: look into log for this
+# Current statuses for BTCUSDT: {'ema_status': 'HOLD', 'rsi_status': 'HOLD', 'sr_status': 'HOLD', 'breakout_status': 'HOLD', 'macd_status': 'SELL', 'wvix_stoch_status': 'HOLD', 'sha_status': 'SELL'}
+
+
 # Connect to Redis
 redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=False)
 
-# Simulate a previous state for BTCUSDT with ema_status as SELL
+# Simulate a previous state for BTCUSDT
 fake_prev_statuses = {
-    "ema_status": "BUY",  # Change this to test different scenarios (SELL, BUY, HOLD)
+    "ema_status": "HOLD",  # Change this to test different scenarios (SELL, BUY, HOLD)
     "rsi_status": "HOLD",
     "sr_status": "HOLD",
     "breakout_status": "HOLD",
-    "macd_status": "HOLD"
+    "macd_status": "SELL",
+    "wvix_stoch_status": "BUY",
+    "sha_status": "SELL"
 }
 
 # Set in Redis
