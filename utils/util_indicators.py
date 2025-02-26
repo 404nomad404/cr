@@ -401,10 +401,10 @@ def calculate_institutional_indicators(df):
         pd.DataFrame: Dataframe with 'CME_Open_Interest' column.
     """
     try:
-        oi = fetch_cme_open_interest()
-        if oi is None:
-            log.warning("Falling back to Binance OI due to CME fetch failure")
-            oi = fetch_binance_open_interest()
+        # oi = fetch_cme_open_interest()
+        # if oi is None:
+        # log.warning("Falling back to Binance OI due to CME fetch failure")
+        oi = fetch_binance_open_interest()
         df["CME_Open_Interest"] = oi
     except Exception as e:
         log.warning(f"Failed to fetch OI: {e}")
