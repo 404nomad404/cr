@@ -10,4 +10,3 @@ redis
 talib-binary
 ta
 Nasdaq-Data-Link
-mplfinance
