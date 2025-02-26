@@ -19,28 +19,6 @@ log = logger()
 def determine_trade_signal(log, ema_confirmation, rsi_confirmation, support_resistance_confirmation,
                            breakout_confirmation, macd_confirmation, wvix_stoch_confirmation,
                            trend_status, latest):
-    """
-    Determines the final trading signal using a Confirmation-Based Strategy.
-
-    Requires at least 2 buy/sell signals to confirm a trade, factoring in trend strength (ADX) and volume.
-    - BUY: 2+ bullish signals + uptrend or WVIX/Stochastic confirmation.
-    - SELL: 2+ bearish signals + downtrend, or 1 bearish signal with strong trend momentum.
-    - HOLD: Insufficient confirmations or weak trend.
-
-    Args:
-        log: Logger instance for tracking signals.
-        ema_confirmation (bool): EMA crossover signal.
-        rsi_confirmation (bool): RSI signal.
-        support_resistance_confirmation (bool): S/R signal.
-        breakout_confirmation (bool): Breakout signal.
-        macd_confirmation (bool): MACD signal.
-        wvix_stoch_confirmation (bool): WVIX/Stochastic signal.
-        trend_status (str): Current trend (e.g., "Strong Uptrend").
-        latest (pd.Series): Latest data with ADX, volume, and Prev_Close.
-
-    Returns:
-        dict: {"action": str, "strength": str, "message": str}
-    """
     config = settings.TREND_CONFIG[settings.MIN_TREND_STRENGTH]
     adx_threshold = config["ADX_THRESHOLD"]
 
@@ -57,44 +35,40 @@ def determine_trade_signal(log, ema_confirmation, rsi_confirmation, support_resi
     }
     adx_trend = trend_status in valid_trends[settings.MIN_TREND_STRENGTH]
 
-    # Count confirmations
     confirmations = [
-        ("EMA", ema_confirmation),
-        ("RSI", rsi_confirmation),
-        ("S/R", support_resistance_confirmation),
-        ("Breakout", breakout_confirmation),
-        ("MACD", macd_confirmation),
-        ("WVIX/Stoch", wvix_stoch_confirmation)
+        ("EMA", ema_confirmation, "BUY" if ema_confirmation else None),
+        ("RSI", rsi_confirmation, "BUY" if rsi_confirmation else None),
+        ("S/R", support_resistance_confirmation, "BUY" if support_resistance_confirmation else None),
+        ("Breakout", breakout_confirmation, "BUY" if breakout_confirmation else None),
+        ("MACD", macd_confirmation, "SELL" if macd_confirmation else None),
+        ("WVIX/Stoch", wvix_stoch_confirmation, "BUY" if wvix_stoch_confirmation else None)
     ]
-    buy_count = sum(1 for _, conf in confirmations if conf == "BUY")
-    sell_count = sum(1 for _, conf in confirmations if conf == "SELL")
+    buy_count = sum(1 for _, conf, direction in confirmations if conf and direction == "BUY")
+    sell_count = sum(1 for _, conf, direction in confirmations if conf and direction == "SELL")
 
-    log.debug(f"Initial buy_count: {buy_count}, sell_count: {sell_count}, price_change: {price_change:.2f}%, "
-              f"adx_trend: {adx_trend}, high_volume: {high_volume}")
+    log.info(f"Initial buy_count: {buy_count}, sell_count: {sell_count}, price_change: {price_change:.2f}%, "
+             f"adx_trend: {adx_trend}, high_volume: {high_volume}")
 
-    # Boost SELL for strong downtrend with momentum
-    if trend_status in ["Strong Downtrend", "Moderate Downtrend"] and adx_value > adx_threshold:
+    # Boost SELL only for downtrends
+    if macd_confirmation and trend_status in ["Strong Downtrend", "Moderate Downtrend"] and adx_value > adx_threshold:
         sell_count += 1
         if price_change < -3 and high_volume:
             sell_count += 1
 
-    # Boost BUY for strong uptrend with momentum
-    if trend_status in ["Strong Uptrend", "Moderate Uptrend"] and adx_value > adx_threshold:
+    # Boost BUY only for uptrends
+    if wvix_stoch_confirmation and trend_status in ["Strong Uptrend", "Moderate Uptrend"] and adx_value > adx_threshold:
         buy_count += 1
         if price_change > 3 and high_volume:
             buy_count += 1
 
-    log.debug(f"Adjusted buy_count: {buy_count}, sell_count: {sell_count}")
+    log.info(f"Adjusted buy_count: {buy_count}, sell_count: {sell_count}")
 
-    # Determine trade action
     if sell_count >= 2:
         strength = "Strong" if sell_count >= 3 or adx_value > 30 else "Moderate"
         if adx_value > adx_threshold and high_volume:
             message = "🚨 SELL - Strong Downtrend with High Volume & ADX Confirmation"
         elif adx_value > adx_threshold:
             message = "❌ SELL - Downtrend Confirmed with Strong ADX"
-        elif high_volume:
-            message = "📉 SELL - Downtrend Confirmed with High Volume"
         else:
             message = "SELL - Proceed with Caution"
         action = "SELL"
@@ -351,11 +325,11 @@ def generate_breakout_message(price, level, direction, latest, volume_multiplier
 
 def detect_trend(log, df):
     """
-    Assesses market trend direction and strength using EMA alignment and ADX.
+    Assesses market trend direction and strength using EMA alignment, ADX, and price direction.
 
-    - Uptrend: EMA9 > EMA21 > EMA50 > EMA100 > EMA200 (strength varies with ADX).
-    - Downtrend: EMA9 < EMA21 < EMA50 < EMA100 < EMA200 (strength varies with ADX).
-    - Ranging: ADX < 20, no clear EMA alignment.
+    - Uptrend: EMA alignment or ADX > 25 with positive price change.
+    - Downtrend: EMA alignment or ADX > 25 with negative price change.
+    - Ranging: ADX < 20, no clear direction.
 
     Args:
         log: Logger instance for tracking.
@@ -363,10 +337,7 @@ def detect_trend(log, df):
 
     Returns:
         list: [message, trend_status]
-            - message (str): Formatted trend description with score.
-            - trend_status (str): Trend classification (e.g., "Strong Uptrend").
     """
-    # Calculate EMAs for trend analysis
     df["EMA9"] = util_indicators.calculate_ema(df, 9)
     df["EMA21"] = util_indicators.calculate_ema(df, 21)
     df["EMA50"] = util_indicators.calculate_ema(df, 50)
@@ -375,10 +346,13 @@ def detect_trend(log, df):
     df["ADX"] = util_indicators.calculate_adx(df)
 
     latest = df.iloc[-1]
-    trend = "Neutral / No Clear Trend"
+    previous = df.iloc[-2] if len(df) > 1 else latest
+    price_change = ((latest["close"] - previous["close"]) / previous["close"]) * 100 if previous["close"] != 0 else 0
+
+    trend = "  • ⚪ *Neutral / No Clear Trend*"
     trend_status = "Neutral"
 
-    # Check for uptrend EMA alignment
+    # EMA alignment for uptrend
     if latest["EMA9"] > latest["EMA21"] > latest["EMA50"] > latest["EMA100"] > latest["EMA200"]:
         if latest["ADX"] > 25:
             trend = "  • 📈 *Strong Uptrend* → High momentum, likely continuation."
@@ -389,8 +363,7 @@ def detect_trend(log, df):
         else:
             trend = "  • 🟢 *Weak Uptrend* → Rising, but conviction is low."
             trend_status = "Weak Uptrend"
-
-    # Check for downtrend EMA alignment
+    # EMA alignment for downtrend
     elif latest["EMA9"] < latest["EMA21"] < latest["EMA50"] < latest["EMA100"] < latest["EMA200"]:
         if latest["ADX"] > 25:
             trend = "  • 📉 *Strong Downtrend* → High momentum, likely continuation."
@@ -401,16 +374,38 @@ def detect_trend(log, df):
         else:
             trend = "  • 🔴 *Weak Downtrend* → Falling, but conviction is low."
             trend_status = "Weak Downtrend"
-
-    # Ranging market if ADX is weak
+    # Use ADX and price change when EMAs don’t align
+    elif latest["ADX"] > 25:
+        if price_change < 0:
+            trend = "  • 📉 *Strong Downtrend* → High momentum, likely continuation."
+            trend_status = "Strong Downtrend"
+        elif price_change > 0:
+            trend = "  • 📈 *Strong Uptrend* → High momentum, likely continuation."
+            trend_status = "Strong Uptrend"
+    elif latest["ADX"] > 20:
+        if price_change < 0:
+            trend = "  • 📊 *Moderate Downtrend* → Bearish, but momentum lacks strength."
+            trend_status = "Moderate Downtrend"
+        elif price_change > 0:
+            trend = "  • 📊 *Moderate Uptrend* → Bullish, but momentum lacks strength."
+            trend_status = "Moderate Uptrend"
     elif latest["ADX"] < 20:
         trend = "  • ⚪ *Ranging Market* → Weak trend, breakout trades risky."
 
-    # Calculate and append trend score
     trend_score = util_indicators.calculate_trend_score(df)
-    trend_score_message = interpret_trend_score(trend_score)
+
+    # Inline directional trend score interpretation
+    direction = "downward" if price_change < 0 else "upward"
+    if trend_score >= 75:
+        trend_score_message = f"🚀 Strong Trend: Market gaining {direction} momentum, potential {direction} breakout."
+    elif trend_score >= 50:
+        trend_score_message = f"🟡 Moderate Trend: Steady {direction} movement, watch for confirmation."
+    else:
+        trend_score_message = "⚪ Weak Trend: Low momentum, ranging likely."
+
     message = f"\n📊*Trends*:\n{trend}\n  • ⚡*Trend Score:* {trend_score}/100 → {trend_score_message}"
 
+    log.debug(f"Trend: {trend_status}, ADX={latest['ADX']:.2f}, price_change={price_change:.2f}%")
     return [message, trend_status]
 
 
@@ -451,38 +446,37 @@ def detect_rsi_signals(latest, trend_status):
     return [], "HOLD"  # RSI moved to detect_wvix_stoch_signals
 
 
-def get_market_sentiment(symbol):
+def get_market_sentiment(symbol, trend_status=None):
     """
     Fetches and interprets Binance funding rates to gauge market sentiment.
 
-    - Positive rates: More longs (bullish).
-    - Negative rates: More shorts (bearish).
-
     Args:
         symbol (str): Trading pair (e.g., "BTCUSDT").
+        trend_status (str): Current trend status for context (optional).
 
     Returns:
-        str: Formatted sentiment message based on funding rates.
+        str: Formatted sentiment message.
     """
     try:
         funding_rates = util_gen.fetch_binance_funding_rates(symbol)
         if funding_rates is None:
             return "⚠️ *Market Sentiment: Data Unavailable* (Failed to fetch funding rates)"
-        sentiment = analyze_market_sentiment(funding_rates)
+        sentiment = analyze_market_sentiment(funding_rates, trend_status)
     except Exception as e:
         return f"⚠️ *Market Sentiment: Error* (Failed to retrieve funding rates: {str(e)})"
     return sentiment
 
 
-def analyze_market_sentiment(funding_rates):
+def analyze_market_sentiment(funding_rates, trend_status=None):
     """
-    Analyzes funding rates to determine market sentiment using statistical thresholds.
+    Analyzes funding rates to determine market sentiment with trend context.
 
     Args:
         funding_rates (list or pd.DataFrame): Funding rate data from Binance.
+        trend_status (str): Current trend status (e.g., "Strong Downtrend") for context.
 
     Returns:
-        str: Sentiment message with bullish/bearish classification.
+        str: Sentiment message with trend alignment.
     """
     if isinstance(funding_rates, str):
         try:
@@ -506,19 +500,27 @@ def analyze_market_sentiment(funding_rates):
 
     strong_threshold = avg_funding_rate + std_dev
     weak_threshold = avg_funding_rate - std_dev
+    neutral_threshold = 0.001  # 0.1% cutoff for negligible rates
 
-    if avg_funding_rate > strong_threshold:
-        sentiment = "  • 🟢 *Strong Bullish Sentiment:* High demand for long positions."
+    if abs(avg_funding_rate) < neutral_threshold:
+        sentiment = "⚪ *Neutral Market:* Balanced positions."
+    elif avg_funding_rate > strong_threshold:
+        sentiment = "🟢 *Strong Bullish Sentiment:* High demand for long positions."
     elif avg_funding_rate > 0:
-        sentiment = "  • 🟩 *Moderate Bullish Sentiment:* More longs than shorts."
+        sentiment = "🟩 *Moderate Bullish Sentiment:* More longs than shorts."
     elif avg_funding_rate < weak_threshold:
-        sentiment = "  • 🔴 *Strong Bearish Sentiment:* Shorts dominant."
+        sentiment = "🔴 *Strong Bearish Sentiment:* Shorts dominant."
     elif avg_funding_rate < 0:
-        sentiment = "  • 🟥 *Moderate Bearish Sentiment:* More shorts than longs."
-    else:
-        sentiment = "  • ⚪ *Neutral Market:* Balanced positions."
+        sentiment = "🟥 *Moderate Bearish Sentiment:* More shorts than longs."
 
-    return f"\n📊 *Binance Funding Rate:*\n{sentiment}"
+    # Add trend context if provided
+    if trend_status and "Downtrend" in trend_status and avg_funding_rate > 0:
+        sentiment += " (Contrarian: Bullish sentiment in a downtrend may signal potential reversal or squeeze.)"
+    elif trend_status and "Uptrend" in trend_status and avg_funding_rate < 0:
+        sentiment += " (Contrarian: Bearish sentiment in an uptrend may signal potential reversal or squeeze.)"
+
+    # Include funding rate value
+    return f"\n📊 *Binance Funding Rate:*\n  • {sentiment} Avg Rate: {avg_funding_rate:.4f}%"
 
 
 def detect_whale_activity(df, symbol="BTCUSDT"):
@@ -542,7 +544,7 @@ def detect_whale_activity(df, symbol="BTCUSDT"):
 
     if latest_row["volume_spike"]:
         spike_msg = (
-            f"🐳 *Volume Spike Detected!*\n"
+            f"  • 🐳 *Volume Spike Detected!*\n"
             f"  • Volume: {latest_row['volume']:.2f} (Avg: {latest_row['volume_ma']:.2f})\n"
             f"  • Time: {latest_row.name}\n"
             f"  • {'🟢 Large Buy' if float(latest_row['close']) > float(latest_row['open']) else '🔴 Large Sell'} Activity!"
@@ -583,9 +585,9 @@ def detect_whale_activity(df, symbol="BTCUSDT"):
         signals.append(f"  • ⚠️ *Binance Volume Error for {base_symbol}*: {str(e)}")
 
     if not signals:
-        whale_message = f"\n  • 🐋 *Whale Activity ({base_symbol})*: No significant activity detected"
+        whale_message = f"\n🐋 *Whale Activity ({base_symbol})*: No significant activity detected"
     else:
-        whale_message = f"\n  • 🐋 *Whale Activity ({base_symbol}):*\n" + "\n".join(signals)
+        whale_message = f"\n🐋 *Whale Activity ({base_symbol}):*\n" + "\n".join(signals)
 
     return whale_message
 
@@ -734,6 +736,12 @@ def generate_trend_momentum_message(log, ema_signals, ema_status, ema_cross_flag
     """
     formatted_signals = ["📡 *Trend & Momentum:*"]
 
+    # Helper to strip leading bullets
+    def clean_signal(signal):
+        if isinstance(signal, str):
+            return signal.strip().lstrip(" •").strip()
+        return str(signal)
+
     # Always include price change
     if price_change is not None:
         price_movement = (f"📈 *Price Movement:* {price_change:.2f}% in 24h" if price_change >= 0
@@ -743,7 +751,8 @@ def generate_trend_momentum_message(log, ema_signals, ema_status, ema_cross_flag
 
     # EMA and MACD summary
     if ema_cross_flag:
-        formatted_signals.extend(ema_signals if isinstance(ema_signals, list) else [ema_signals])
+        formatted_signals.extend(
+            [clean_signal(s) for s in (ema_signals if isinstance(ema_signals, list) else [ema_signals])])
     elif macd_status == "SELL":
         formatted_signals.append("⚪ No EMA cross, MACD confirms ongoing downtrend.")
     elif macd_status == "BUY":
@@ -753,14 +762,13 @@ def generate_trend_momentum_message(log, ema_signals, ema_status, ema_cross_flag
 
     # Add MACD details if present
     if macd_signals and not ema_cross_flag:
-        if isinstance(macd_signals, list):
-            formatted_signals.extend(macd_signals)
-        else:
-            formatted_signals.append(macd_signals)  # Treat as single string
+        formatted_signals.extend(
+            [clean_signal(s) for s in (macd_signals if isinstance(macd_signals, list) else [macd_signals])])
 
     # Add ADX signals
     if adx_signals:
-        formatted_signals.extend(adx_signals if isinstance(adx_signals, list) else [adx_signals])
+        formatted_signals.extend(
+            [clean_signal(s) for s in (adx_signals if isinstance(adx_signals, list) else [adx_signals])])
 
     message = "\n  • ".join(formatted_signals)
     log.debug(f"Trend & Momentum signals: {formatted_signals}")
@@ -781,7 +789,7 @@ def generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_si
     Returns:
         str: Formatted S/R section message.
     """
-    message = "📊 *Support & Resistance*\n"
+    message = "\n📊 *Support & Resistance*"
     all_signals = []
 
     def clean_signal(signal):
