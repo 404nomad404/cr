@@ -326,17 +326,6 @@ def generate_breakout_message(price, level, direction, latest, volume_multiplier
 def detect_trend(log, df):
     """
     Assesses market trend direction and strength using EMA alignment, ADX, and price direction.
-
-    - Uptrend: EMA alignment or ADX > 25 with positive price change.
-    - Downtrend: EMA alignment or ADX > 25 with negative price change.
-    - Ranging: ADX < 20, no clear direction.
-
-    Args:
-        log: Logger instance for tracking.
-        df (pd.DataFrame): Historical OHLCV data.
-
-    Returns:
-        list: [message, trend_status]
     """
     df["EMA9"] = util_indicators.calculate_ema(df, 9)
     df["EMA21"] = util_indicators.calculate_ema(df, 21)
@@ -352,7 +341,6 @@ def detect_trend(log, df):
     trend = "  • ⚪ *Neutral / No Clear Trend*"
     trend_status = "Neutral"
 
-    # EMA alignment for uptrend
     if latest["EMA9"] > latest["EMA21"] > latest["EMA50"] > latest["EMA100"] > latest["EMA200"]:
         if latest["ADX"] > 25:
             trend = "  • 📈 *Strong Uptrend* → High momentum, likely continuation."
@@ -363,7 +351,6 @@ def detect_trend(log, df):
         else:
             trend = "  • 🟢 *Weak Uptrend* → Rising, but conviction is low."
             trend_status = "Weak Uptrend"
-    # EMA alignment for downtrend
     elif latest["EMA9"] < latest["EMA21"] < latest["EMA50"] < latest["EMA100"] < latest["EMA200"]:
         if latest["ADX"] > 25:
             trend = "  • 📉 *Strong Downtrend* → High momentum, likely continuation."
@@ -374,7 +361,6 @@ def detect_trend(log, df):
         else:
             trend = "  • 🔴 *Weak Downtrend* → Falling, but conviction is low."
             trend_status = "Weak Downtrend"
-    # Use ADX and price change when EMAs don’t align
     elif latest["ADX"] > 25:
         if price_change < 0:
             trend = "  • 📉 *Strong Downtrend* → High momentum, likely continuation."
@@ -394,18 +380,19 @@ def detect_trend(log, df):
 
     trend_score = util_indicators.calculate_trend_score(df)
 
-    # Inline directional trend score interpretation
-    direction = "downward" if price_change < 0 else "upward"
-    if trend_score >= 75:
-        trend_score_message = f"🚀 Strong Trend: Market gaining {direction} momentum, potential {direction} breakout."
-    elif trend_score >= 50:
-        trend_score_message = f"🟡 Moderate Trend: Steady {direction} movement, watch for confirmation."
-    else:
-        trend_score_message = "⚪ Weak Trend: Low momentum, ranging likely."
+    # Sync trend score direction with trend_status
+    direction = "downward" if "Downtrend" in trend_status else "upward"
+    trend_score_message = (
+        f"🚀 Strong Trend: Market gaining {direction} momentum, potential {direction} breakout."
+        if trend_score >= 75 else
+        f"🟡 Moderate Trend: Steady {direction} movement, watch for confirmation."
+        if trend_score >= 50 else
+        "⚪ Weak Trend: Low momentum, ranging likely."
+    )
 
     message = f"\n📊*Trends*:\n{trend}\n  • ⚡*Trend Score:* {trend_score}/100 → {trend_score_message}"
 
-    log.debug(f"Trend: {trend_status}, ADX={latest['ADX']:.2f}, price_change={price_change:.2f}%")
+    log.info(f"Trend: {trend_status}, ADX={latest['ADX']:.2f}, price_change={price_change:.2f}%")
     return [message, trend_status]
 
 
@@ -821,6 +808,7 @@ def generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_si
 def detect_wvix_stoch_signals(latest):
     """
     Detects potential market bottoms using Williams VIX Fix, Stochastic Oscillator, and RSI.
+    If D drops below 20 (e.g., K 14.46, D 18.00), wvix_stoch_status="BUY", alert triggers.
 
     Args:
         latest (pd.Series): Latest data with WVIF, Stochastic, and RSI values.
@@ -849,6 +837,7 @@ def detect_wvix_stoch_signals(latest):
     stoch_oversold = fastk < 20 and fastd < 20
     wvix_bottom = wvix_value < wvix_lower
 
+    # If D drops below 20 (e.g., K 14.46, D 18.00), wvix_stoch_status="BUY", alert triggers.
     if rsi_oversold and stoch_oversold and wvix_bottom:
         signals.append(f"🟢 *Bottom Detected!* - RSI {rsi:.2f} < 30, "
                        f"WVIX {wvix_value:.2f} < BB Lower {wvix_lower:.2f}, "
