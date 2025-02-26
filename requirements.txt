@@ -9,3 +9,4 @@ asyncio
 redis
 talib-binary
 ta
+Nasdaq-Data-Link
