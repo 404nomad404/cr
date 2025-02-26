@@ -66,7 +66,7 @@ def detect_signals(df, symbol, use_historical=False):
         tuple: (action, price, alert_message, trade_signals, signal_statuses, df)
     """
     if not use_historical:
-        df = util_gen.fetch_binance_data(symbol, interval="1d", limit=20)
+        df = util_gen.fetch_binance_data(symbol, interval="1d", limit=100)
 
     # log.info(f"Raw data for {symbol}: {df[['open', 'high', 'low', 'close', 'volume']].tail(5).to_dict()}")
 
@@ -86,7 +86,7 @@ def detect_signals(df, symbol, use_historical=False):
 
     price_change = ((latest["close"] - prev_close) / prev_close) * 100 if prev_close != 0 else 0
     log.info(f"Price change for {symbol}: {price_change:.2f}%, latest={latest['close']:.2f}, prev={prev_close:.2f}")
-    log.info(f"Latest before trade signal: {latest[['close', 'Prev_Close', 'ADX', 'volume', 'Volume_MA']].to_dict()}")
+    # log.info(f"Latest before trade signal: {latest[['close', 'Prev_Close', 'ADX', 'volume', 'Volume_MA']].to_dict()}")
 
     # Detect signals
     ema_signals, ema_status, ema_cross_flag = util_signals.detect_ema_crossovers(log, latest, previous)
@@ -97,18 +97,21 @@ def detect_signals(df, symbol, use_historical=False):
     macd_signals, macd_status = util_signals.detect_macd_signal(log, df)
     adx_signals = util_signals.determine_adx_signal(latest, trend_status)
     wvix_stoch_signals, wvix_stoch_status = util_signals.detect_wvix_stoch_signals(latest)
+    sha_signals, sha_status = util_signals.detect_sha_signals(log, df)
 
     # Debug adx
     log.info(f"ADX: signals={adx_signals}")
     # Debug MACD
     log.info(f"MACD: signals={macd_signals}, status={macd_status}")
+    # Debug SHA
+    log.info(f"SHA status for {symbol}: {sha_status}")
 
     # Compile analysis sections
     all_signals = [
         util_signals.generate_trend_momentum_message(log, ema_signals, ema_status, ema_cross_flag,
                                                      macd_signals, macd_status, adx_signals, price_change=price_change),
         util_signals.generate_support_resistance_message(log, breakout_signal, sr_signals, rsi_signals,
-                                                         wvix_stoch_signals),
+                                                         wvix_stoch_signals, sha_signals),  # SHA under S/R
         trend_signals,
         util_signals.get_market_sentiment(symbol),
         util_signals.detect_whale_activity(df, symbol)
@@ -121,14 +124,23 @@ def detect_signals(df, symbol, use_historical=False):
     breakout_confirmation = breakout_status in ["BUY", "SELL"]
     macd_confirmation = macd_status in ["BUY", "SELL"]
     wvix_stoch_confirmation = wvix_stoch_status in ["BUY"]
+    sha_confirmation = sha_status in ["BUY", "SELL"]
+
     log.info(f"Confirmations: EMA={ema_confirmation}, RSI={rsi_confirmation}, SR={support_resistance_confirmation}, "
-             f"Breakout={breakout_confirmation}, MACD={macd_confirmation}, WVIX/Stoch={wvix_stoch_confirmation}")
+             f"Breakout={breakout_confirmation}, MACD={macd_confirmation}, "
+             f"WVIX/Stoch={wvix_stoch_confirmation}, SHA={sha_confirmation}")
 
     trade_signal = util_signals.determine_trade_signal(log, ema_confirmation, rsi_confirmation,
                                                        support_resistance_confirmation, breakout_confirmation,
                                                        macd_confirmation, wvix_stoch_confirmation,
-                                                       trend_status, latest)
+                                                       trend_status, latest, sha_confirmation)
 
+    # Store SHA signal timestamp and action
+    sha_timestamp = latest.name  # Use the index (datetime) of the latest data point
+    # Use SHA confirmation directly for markers
+    sha_action = sha_confirmation if sha_confirmation in ['BUY', 'SELL'] else None
+
+    # FINAL DECISION MESSAGE
     FINAL_DECISION_MESSAGE = f"\n🎯 *FINAL DECISION:*\n━━━━━━━━━━━━━━\n{trade_signal['message']}"
     if trade_signal["action"] == "BUY" and util_indicators.evaluate_double_down(trade_signal["action"], trend_status,
                                                                                 latest):
@@ -144,10 +156,12 @@ def detect_signals(df, symbol, use_historical=False):
         "sr_status": sr_status,
         "breakout_status": breakout_status,
         "macd_status": macd_status,
-        "wvix_stoch_status": wvix_stoch_status
+        "wvix_stoch_status": wvix_stoch_status,
+        "sha_status": sha_status
     }
 
-    return trade_signal["action"], latest["close"], alert_message, trade_signal, signal_statuses, df
+    return (trade_signal["action"], latest["close"], alert_message, trade_signal, signal_statuses, df,
+            sha_timestamp, sha_action)
 
 
 async def monitor_crypto(symbols, stop_event):
@@ -179,38 +193,41 @@ async def monitor_crypto(symbols, stop_event):
             # Fetch latest market data from Binance
             df = util_gen.fetch_binance_data(symbol)
             # Unpack 6 items including df from detect_signals
-            status, price, signals, trade_signals, signal_statuses, df = detect_signals(df, symbol)
+            status, price, signals, trade_signals, signal_statuses, df, sha_timestamp, sha_action = detect_signals(
+                df, symbol)
 
             log.info(f"{symbol} - {status} @ {price:.2f}")  # Log current signal status
+            log.info(f"Current statuses for {symbol}: {signal_statuses}")
 
             # Check previous signal states in Redis
             prev_statuses_key = f"prev_statuses:{symbol}"
             prev_statuses_bytes = redis_client.get(prev_statuses_key)
             prev_statuses = util_redis.deserialize_statuses(prev_statuses_bytes) if prev_statuses_bytes else None
+            log.info(f"Previous statuses for {symbol}: {prev_statuses}")  # Add this
 
-            # Extract WVIX/Stochastic signals for comparison
-            current_wvix_stoch_signals = next((s for s in signals.split('\n') if 'WVIX' in s), None)
-            prev_wvix_stoch_key = f"prev_wvix_stoch:{symbol}"
-            prev_wvix_stoch_bytes = redis_client.get(prev_wvix_stoch_key)
-            prev_wvix_stoch_signals = prev_wvix_stoch_bytes.decode('utf-8') if prev_wvix_stoch_bytes else None
-
-            # Determine if an alert should be sent (first run or status change)
-            # Trigger alert on status OR WVIX/Stochastic signal change
-            should_send_alert = is_first_run or (
+            # Trigger alert on first run, status change, or WVIX/Stochastic BUY
+            should_send_alert = (
+                    is_first_run or
                     prev_statuses is None or
                     any(signal_statuses[key] != prev_statuses.get(key) for key in signal_statuses) or
-                    (current_wvix_stoch_signals != prev_wvix_stoch_signals)
+                    (signal_statuses["wvix_stoch_status"] == "BUY" and
+                     prev_statuses is not None and
+                     prev_statuses.get("wvix_stoch_status") != "BUY")
             )
 
             if should_send_alert and signals:
                 formatted_symbol = f"{symbol[:-4]}/{symbol[-4:]}"
                 ttl_minutes = settings.MESSAGE_TTL // 60
+
                 # Short summary message for group chat
                 short_message = (
                     f"📊 *Crypto Alert: {formatted_symbol}* → *{status}*\n"
                     f"💰 *Current Price:* {price:.2f} USDT\n\n"
                     f"ℹ️ *Note:* Detailed analysis is available for {ttl_minutes} minutes. Checks are done every {settings.MONITOR_SLEEP // 60} minutes."
                 )
+                # special case if bottom found
+                if signal_statuses["wvix_stoch_status"] == "BUY":
+                    short_message += "\n🔥 *WVIX/Stochastic BUY Detected!*"
 
                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
                 # Full analysis message stored in Redis
@@ -225,7 +242,8 @@ async def monitor_crypto(symbols, stop_event):
 
                 if SEND_CHAT:
                     # Generate and store price chart using the updated df
-                    chart_image = util_chart.generate_price_chart(df, symbol)
+                    # chart_image = util_chart.generate_price_chart(df, symbol)
+                    chart_image = util_chart.generate_price_chart(df, symbol, sha_timestamp, sha_action)
                     if chart_image is None:
                         log.error(f"Failed to generate chart image for {symbol}")
                         continue
@@ -249,7 +267,7 @@ async def monitor_crypto(symbols, stop_event):
 
                     # Update previous signal statuses in Redis
                     redis_client.set(prev_statuses_key, util_redis.serialize_statuses(signal_statuses))
-                    log.info(f"Updated previous signal statuses for {symbol}")
+                    log.info(f"Updated previous signal statuses and WVIX/Stochastic for {symbol}")
 
         # Reset first-run flag after full refresh
         if is_first_run:
