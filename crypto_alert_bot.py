@@ -54,7 +54,7 @@ redis_client = redis.Redis(
 REFRESH_INTERVAL = settings.REFRESH_INTERVAL  # refresh interval in seconds for full symbol updates
 
 
-def detect_signals(df, symbol):
+def detect_signals(df, symbol, use_historical=False):
     """
     Analyzes market data to generate trading signals based on technical indicators and whale activity.
 
@@ -65,7 +65,9 @@ def detect_signals(df, symbol):
     Returns:
         tuple: (action, price, alert_message, trade_signals, signal_statuses, df)
     """
-    df = util_gen.fetch_binance_data(symbol, interval="1d", limit=20)
+    if not use_historical:
+        df = util_gen.fetch_binance_data(symbol, interval="1d", limit=20)
+
     # log.info(f"Raw data for {symbol}: {df[['open', 'high', 'low', 'close', 'volume']].tail(5).to_dict()}")
 
     if len(df) < 2:
@@ -186,10 +188,18 @@ async def monitor_crypto(symbols, stop_event):
             prev_statuses_bytes = redis_client.get(prev_statuses_key)
             prev_statuses = util_redis.deserialize_statuses(prev_statuses_bytes) if prev_statuses_bytes else None
 
+            # Extract WVIX/Stochastic signals for comparison
+            current_wvix_stoch_signals = next((s for s in signals.split('\n') if 'WVIX' in s), None)
+            prev_wvix_stoch_key = f"prev_wvix_stoch:{symbol}"
+            prev_wvix_stoch_bytes = redis_client.get(prev_wvix_stoch_key)
+            prev_wvix_stoch_signals = prev_wvix_stoch_bytes.decode('utf-8') if prev_wvix_stoch_bytes else None
+
             # Determine if an alert should be sent (first run or status change)
+            # Trigger alert on status OR WVIX/Stochastic signal change
             should_send_alert = is_first_run or (
                     prev_statuses is None or
-                    any(signal_statuses[key] != prev_statuses.get(key) for key in signal_statuses)
+                    any(signal_statuses[key] != prev_statuses.get(key) for key in signal_statuses) or
+                    (current_wvix_stoch_signals != prev_wvix_stoch_signals)
             )
 
             if should_send_alert and signals:
