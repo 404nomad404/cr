@@ -10,4 +10,4 @@ redis
 talib-binary
 ta
 Nasdaq-Data-Link
-pip freeze
+freeze
